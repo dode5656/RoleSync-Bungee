@@ -27,7 +27,7 @@ public class DonorCommand extends Command {
     private JDA jda;
 
     public DonorCommand(final DonorRole plugin) {
-        super("donor", "donorrole.use");
+        super("donor");
         this.waiter = new EventWaiter();
         this.plugin = plugin;
         this.jda = plugin.getJDA();
@@ -109,14 +109,11 @@ public class DonorCommand extends Command {
                         }
 
                     } else {
+                        plugin.getPlayerCache().reload(plugin);
                         Configuration playerCache = plugin.getPlayerCache().read();
-                        if (playerCache != null) {
-                            playerCache.set("verified." + player.getUniqueId().toString(),
-                                    privateChannel.getUser().getId());
-                        }
-
+                        playerCache.set("verified." + player.getUniqueId().toString(),
+                                privateChannel.getUser().getId());
                         plugin.getPlayerCache().save(plugin);
-                        plugin.getPlayerCache().reload();
 
                     }
 

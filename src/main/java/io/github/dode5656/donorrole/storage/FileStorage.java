@@ -18,7 +18,6 @@ public class FileStorage {
 
     public FileStorage(String name, File location) {
         this.file = new File(location, name);
-        reload();
     }
 
     public final void save(DonorRole main) {
@@ -34,33 +33,36 @@ public class FileStorage {
         return fileStorage;
     }
 
-    public final void reload() {
+    public final void reload(DonorRole main) {
+        Logger logger = main.getLogger();
         try {
+            if (!file.getParentFile().exists())
+                file.getParentFile().mkdir();
+            if (!file.exists())
+                file.createNewFile();
             this.fileStorage = ConfigurationProvider.getProvider(YamlConfiguration.class).load(this.file);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Could not reload " + file.getName() + " file!", e);
         }
     }
 
     public final void saveDefaults(DonorRole main) {
         if (this.file.exists()) {
-            reload();
+            reload(main);
             return;
-        }
-        if (!main.getDataFolder().exists())
-            main.getDataFolder().mkdir();
-
-        File file = new File(main.getDataFolder(), "config.yml");
+            }
+            if (!file.getParentFile().exists())
+                file.getParentFile().mkdir();
 
         if (!file.exists()) {
-            try (InputStream in = main.getResourceAsStream("config.yml")) {
+            try (InputStream in = main.getResourceAsStream(file.getName())) {
                 Files.copy(in, file.toPath());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        reload();
+        reload(main);
     }
 
 }

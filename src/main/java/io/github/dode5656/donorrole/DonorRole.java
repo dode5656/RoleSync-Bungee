@@ -27,6 +27,7 @@ public class DonorRole extends Plugin {
     public void onEnable() {
 
         config = new FileStorage("config.yml", new File(getDataFolder().getPath()));
+        config.saveDefaults(this);
 
         playerCache = new FileStorage("playerCache.yml", new File(getDataFolder().getPath(), "cache"));
 
@@ -37,18 +38,18 @@ public class DonorRole extends Plugin {
         if (getConfig().getString("bot-token").equals("REPLACEBOTTOKEN")) {
 
             getLogger().severe(messageManager.defaultError("Bot Token"));
-            getProxy().getPluginManager().getPlugin(getClass().getName()).onDisable();
+            disablePlugin();
             return;
 
         } else if (getConfig().getString("server-id").equals("REPLACESERVERID")) {
 
             getLogger().severe(messageManager.defaultError("Server ID"));
-            getProxy().getPluginManager().getPlugin(getClass().getName()).onDisable();
+            disablePlugin();
             return;
 
         } else if (getConfig().getSection("roles").contains("REPLACEROLEID")) {
             getLogger().severe(messageManager.defaultError("a Role ID"));
-            getProxy().getPluginManager().getPlugin(getClass().getName()).onDisable();
+            disablePlugin();
             return;
         }
 
@@ -96,9 +97,16 @@ public class DonorRole extends Plugin {
             return true;
         } catch (LoginException e) {
             getLogger().log(Level.SEVERE, "Error when logging in!");
-            getProxy().getPluginManager().getPlugin(getClass().getName()).onDisable();
+            disablePlugin();
         }
 
         return false;
+    }
+
+    private void disablePlugin() {
+        getProxy().getPluginManager().unregisterListeners(this);
+        getProxy().getPluginManager().unregisterCommands(this);
+        getProxy().getPluginManager().getPlugin(getClass().getSimpleName()).onDisable();
+        getProxy().getScheduler().cancel(this);
     }
 }
