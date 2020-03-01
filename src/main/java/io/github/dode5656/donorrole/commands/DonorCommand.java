@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.config.Configuration;
@@ -37,19 +36,19 @@ public class DonorCommand extends Command {
     public void execute(final CommandSender sender, final String[] args) {
         MessageManager messageManager = plugin.getMessageManager();
         if (!(sender instanceof ProxiedPlayer)) {
-            sender.sendMessage(new TextComponent(messageManager.format(Message.PLAYERONLY)));
+            sender.sendMessage(messageManager.format(Message.PLAYERONLY));
             return;
         }
 
         if (!sender.hasPermission("donorrole.use")) {
-            sender.sendMessage(new TextComponent(messageManager.format(Message.NOPERMCMD)));
+            sender.sendMessage(messageManager.format(Message.NOPERMCMD));
             return;
         }
 
         final ProxiedPlayer player = (ProxiedPlayer) sender;
 
         if (args.length < 1) {
-            sender.sendMessage(new TextComponent(messageManager.format("/<command> <discordname> - Don't forget the numbers after the #")));
+            sender.sendMessage(messageManager.format("/<command> <discordname> - Don't forget the numbers after the #"));
             return;
         }
 
@@ -57,7 +56,7 @@ public class DonorCommand extends Command {
 
         if (guild == null) {
 
-            sender.sendMessage(new TextComponent(messageManager.format(Message.ERROR)));
+            sender.sendMessage(messageManager.format(Message.ERROR));
             plugin.getLogger().severe(Message.INVALIDSERVERID.getMessage());
             return;
 
@@ -69,16 +68,15 @@ public class DonorCommand extends Command {
         }
         if (member == null) {
 
-            sender.sendMessage(new TextComponent(messageManager.replacePlaceholders(
-                    messageManager.format(Message.BADNAME),
-                    args[0], sender.getName(), guild.getName())));
+            sender.sendMessage(messageManager.replacePlaceholders(Message.BADNAME.getMessage(),
+                    args[0], sender.getName(), guild.getName()));
 
             return;
         }
         final Member finalMember = member;
         member.getUser().openPrivateChannel().queue(privateChannel -> {
 
-            privateChannel.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.VERIFYREQUEST),
+            privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(messageManager.formatDiscord(Message.VERIFYREQUEST),
                     privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
             waiter.waitForEvent(PrivateMessageReceivedEvent.class, event -> event.getChannel().getId()
                     .equals(privateChannel.getId()) &&
@@ -98,11 +96,10 @@ public class DonorCommand extends Command {
                             }
                         }
                         if (result) {
-                            player.sendMessage(new TextComponent(messageManager.replacePlaceholders(
-                                    messageManager.format(Message.ALREADYVERIFIED),
-                                    privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())));
+                            player.sendMessage(messageManager.replacePlaceholders(Message.ALREADYVERIFIED.getMessage(),
+                                    privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
-                            privateChannel.sendMessage(messageManager.replacePlaceholders(
+                            privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
                                     messageManager.formatDiscord(Message.ALREADYVERIFIED),
                                     privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
                             return;
@@ -134,34 +131,31 @@ public class DonorCommand extends Command {
                         guild.addRoleToMember(finalMember, role).queue();
                     }
 
-                    sender.sendMessage(new TextComponent(messageManager.replacePlaceholders(
-                            messageManager.format(Message.VERIFIEDMINECRAFT),
-                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())));
+                    sender.sendMessage(messageManager.replacePlaceholders(Message.VERIFIEDMINECRAFT.getMessage(),
+                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
-                    privateChannel.sendMessage(messageManager.replacePlaceholders(
+                    privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
                             messageManager.formatDiscord(Message.VERIFIEDDISCORD),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
 
                 } else if (event.getMessage().getContentRaw().equalsIgnoreCase("no")) {
 
-                    event.getChannel().sendMessage(messageManager.replacePlaceholders(
+                    event.getChannel().sendMessage(messageManager.replacePlaceholdersDiscord(
                             messageManager.formatDiscord(Message.DENIEDDISCORD),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
-                    sender.sendMessage(new TextComponent(messageManager.replacePlaceholders(
-                            messageManager.format(Message.DENIEDMINECRAFT),
-                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())));
+                    sender.sendMessage(messageManager.replacePlaceholders(Message.DENIEDMINECRAFT.getMessage(),
+                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
                 }
 
             }, plugin.getConfig().getInt("verifyTimeout"), TimeUnit.MINUTES, () -> {
 
-                privateChannel.sendMessage(messageManager.replacePlaceholders(
+                privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
                         messageManager.formatDiscord(Message.TOOLONGDISCORD),
                         privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
 
-                sender.sendMessage(new TextComponent(messageManager.replacePlaceholders(
-                        messageManager.format(Message.TOOLONGMC),
-                        privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())));
+                sender.sendMessage(messageManager.replacePlaceholders(Message.TOOLONGMC.getMessage(),
+                        privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
             });
 

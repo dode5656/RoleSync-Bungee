@@ -2,10 +2,13 @@ package io.github.dode5656.donorrole.utilities;
 
 import io.github.dode5656.donorrole.DonorRole;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.config.Configuration;
 
 public class MessageManager {
-    private String prefix;
+    private BaseComponent[] prefix;
     private Configuration messages;
 
     public MessageManager(DonorRole plugin) {
@@ -13,25 +16,38 @@ public class MessageManager {
         prefix = color(plugin.getConfig().getString(Message.PREFIX.getMessage()) + " ");
     }
 
-    public final String color(String message) {
-        return ChatColor.translateAlternateColorCodes('&', message);
+    public final BaseComponent[] color(String message) {
+        return TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', message));
     }
 
-    public final String format(String msg) {
-        return prefix + color(msg);
+    public final BaseComponent[] format(String msg) {
+        ComponentBuilder componentBuilder = new ComponentBuilder();
+        componentBuilder.append(prefix);
+        componentBuilder.append(color(msg));
+        return componentBuilder.create();
     }
 
-    public final String format(Message msg) {
-        return prefix + color(this.messages.getString(msg.getMessage()));
+    public final BaseComponent[] format(Message msg) {
+        return format(this.messages.getString(msg.getMessage()));
     }
 
     public final String formatDiscord(Message msg) { return this.messages.getString(msg.getMessage()); }
 
-    public final String replacePlaceholders(String msg, String discordTag, String playerName, String guildName) {
-        return color(msg
+    public final BaseComponent[] replacePlaceholders(String msg, String discordTag, String playerName, String guildName) {
+        ComponentBuilder componentBuilder = new ComponentBuilder();
+        componentBuilder.append(prefix);
+        componentBuilder.append(color(msg
                 .replaceAll("\\{discord_tag}", discordTag)
                 .replaceAll("\\{player_name}", playerName)
-                .replaceAll("\\{discord_server_name}", guildName));
+                .replaceAll("\\{discord_server_name}", guildName)));
+        return componentBuilder.create();
+    }
+
+    public final String replacePlaceholdersDiscord(String msg, String discordTag, String playerName, String guildName) {
+        return msg
+                .replaceAll("\\{discord_tag}", discordTag)
+                .replaceAll("\\{player_name}", playerName)
+                .replaceAll("\\{discord_server_name}", guildName);
     }
 
     public final String defaultError(String value) {
