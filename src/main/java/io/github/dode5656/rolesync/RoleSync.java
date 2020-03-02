@@ -4,6 +4,7 @@ import io.github.dode5656.rolesync.commands.ReloadCommand;
 import io.github.dode5656.rolesync.commands.SyncCommand;
 import io.github.dode5656.rolesync.events.JoinEvent;
 import io.github.dode5656.rolesync.storage.FileStorage;
+import io.github.dode5656.rolesync.utilities.ConfigChecker;
 import io.github.dode5656.rolesync.utilities.MessageManager;
 import io.github.dode5656.rolesync.utilities.PluginStatus;
 import net.dv8tion.jda.api.AccountType;
@@ -23,7 +24,8 @@ public class RoleSync extends Plugin {
     private FileStorage config;
     private MessageManager messageManager;
     private JDA jda;
-    PluginStatus pluginStatus;
+    private PluginStatus pluginStatus;
+    private ConfigChecker configChecker;
 
     @Override
     public void onEnable() {
@@ -38,20 +40,7 @@ public class RoleSync extends Plugin {
         messages.saveDefaults(this);
         messageManager = new MessageManager(this);
 
-        if (getConfig().getString("bot-token").equals("REPLACEBOTTOKEN")) {
-
-            getLogger().severe(messageManager.defaultError("Bot Token"));
-            disablePlugin();
-
-        } else if (getConfig().getString("server-id").equals("REPLACESERVERID")) {
-
-            getLogger().severe(messageManager.defaultError("Server ID"));
-            disablePlugin();
-
-        } else if (getConfig().getSection("roles").contains("REPLACEROLEID")) {
-            getLogger().severe(messageManager.defaultError("a Role ID"));
-            disablePlugin();
-        }
+        configChecker.checkDefaults();
 
         startBot();
 
@@ -98,6 +87,10 @@ public class RoleSync extends Plugin {
         this.pluginStatus = pluginStatus;
     }
 
+    public ConfigChecker getConfigChecker() {
+        return configChecker;
+    }
+
     public void startBot() {
         try {
             this.jda = new JDABuilder(AccountType.BOT).setToken(getConfig().getString("bot-token")).build();
@@ -108,7 +101,7 @@ public class RoleSync extends Plugin {
         }
     }
 
-    private void disablePlugin() {
+    public void disablePlugin() {
         pluginStatus = PluginStatus.DISABLED;
     }
 }

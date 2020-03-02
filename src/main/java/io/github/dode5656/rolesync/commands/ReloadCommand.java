@@ -25,6 +25,7 @@ public class ReloadCommand extends Command {
         try {
             plugin.getConfigStorage().reload(plugin);
             if (plugin.getPluginStatus() == PluginStatus.DISABLED) plugin.setPluginStatus(PluginStatus.ENABLED);
+            plugin.getConfigChecker().checkDefaults();
             plugin.startBot();
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Error while trying to reload config" + e);
