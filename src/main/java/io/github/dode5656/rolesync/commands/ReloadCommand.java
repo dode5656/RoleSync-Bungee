@@ -24,13 +24,13 @@ public class ReloadCommand extends Command {
         }
         try {
             plugin.getConfigStorage().reload(plugin);
+            if (plugin.getPluginStatus() == PluginStatus.DISABLED) plugin.setPluginStatus(PluginStatus.ENABLED);
             plugin.startBot();
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Error while trying to reload config" + e);
             commandSender.sendMessage(plugin.getMessageManager().format(Message.CONFIG_RELOAD_ERROR));
             return;
         }
-        if (plugin.getPluginStatus() == PluginStatus.DISABLED) plugin.setPluginStatus(PluginStatus.ENABLED);
         commandSender.sendMessage(plugin.getMessageManager().format(Message.CONFIG_RELOADED));
     }
 }
