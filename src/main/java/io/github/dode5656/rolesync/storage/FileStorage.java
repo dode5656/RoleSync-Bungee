@@ -1,6 +1,6 @@
-package io.github.dode5656.donorrole.storage;
+package io.github.dode5656.rolesync.storage;
 
-import io.github.dode5656.donorrole.DonorRole;
+import io.github.dode5656.rolesync.RoleSync;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -20,7 +20,7 @@ public class FileStorage {
         this.file = new File(location, name);
     }
 
-    public final void save(DonorRole main) {
+    public final void save(RoleSync main) {
         Logger logger = main.getLogger();
         try {
             ConfigurationProvider.getProvider(YamlConfiguration.class).save(fileStorage, file);
@@ -33,7 +33,7 @@ public class FileStorage {
         return fileStorage;
     }
 
-    public final void reload(DonorRole main) {
+    public final void reload(RoleSync main) {
         Logger logger = main.getLogger();
         try {
             if (!file.getParentFile().exists())
@@ -46,7 +46,7 @@ public class FileStorage {
         }
     }
 
-    public final void saveDefaults(DonorRole main) {
+    public final void saveDefaults(RoleSync main) {
         if (this.file.exists()) {
             reload(main);
             return;

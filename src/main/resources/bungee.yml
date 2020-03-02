@@ -1,4 +1,4 @@
-name: DonorRole
-main: io.github.dode5656.donorrole.DonorRole
-version: 1.0.0
+name: RoleSync
+main: io.github.dode5656.rolesync.RoleSync
+version: 1.1.1
 author: dode5656

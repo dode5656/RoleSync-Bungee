@@ -1,10 +1,11 @@
-package io.github.dode5656.donorrole.commands;
+package io.github.dode5656.rolesync.commands;
 
 
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import io.github.dode5656.donorrole.DonorRole;
-import io.github.dode5656.donorrole.utilities.Message;
-import io.github.dode5656.donorrole.utilities.MessageManager;
+import io.github.dode5656.rolesync.RoleSync;
+import io.github.dode5656.rolesync.utilities.Message;
+import io.github.dode5656.rolesync.utilities.MessageManager;
+import io.github.dode5656.rolesync.utilities.PluginStatus;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -20,13 +21,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class DonorCommand extends Command {
-    private DonorRole plugin;
+public class SyncCommand extends Command {
+    private RoleSync plugin;
     private EventWaiter waiter;
     private JDA jda;
 
-    public DonorCommand(final DonorRole plugin) {
-        super("donor");
+    public SyncCommand(final RoleSync plugin) {
+        super("sync");
         this.waiter = new EventWaiter();
         this.plugin = plugin;
         this.jda = plugin.getJDA();
@@ -35,13 +36,17 @@ public class DonorCommand extends Command {
 
     public void execute(final CommandSender sender, final String[] args) {
         MessageManager messageManager = plugin.getMessageManager();
+        if (plugin.getPluginStatus() == PluginStatus.DISABLED) {
+            sender.sendMessage(messageManager.format(Message.PLUGIN_DISABLED));
+            return;
+        }
         if (!(sender instanceof ProxiedPlayer)) {
-            sender.sendMessage(messageManager.format(Message.PLAYERONLY));
+            sender.sendMessage(messageManager.format(Message.PLAYER_ONLY));
             return;
         }
 
-        if (!sender.hasPermission("donorrole.use")) {
-            sender.sendMessage(messageManager.format(Message.NOPERMCMD));
+        if (!sender.hasPermission("rolesync.use")) {
+            sender.sendMessage(messageManager.format(Message.NO_PERM_CMD));
             return;
         }
 
@@ -57,7 +62,7 @@ public class DonorCommand extends Command {
         if (guild == null) {
 
             sender.sendMessage(messageManager.format(Message.ERROR));
-            plugin.getLogger().severe(Message.INVALIDSERVERID.getMessage());
+            plugin.getLogger().severe(Message.INVALID_SERVER_ID.getMessage());
             return;
 
         }
@@ -68,7 +73,7 @@ public class DonorCommand extends Command {
         }
         if (member == null) {
 
-            sender.sendMessage(messageManager.replacePlaceholders(Message.BADNAME.getMessage(),
+            sender.sendMessage(messageManager.replacePlaceholders(Message.BAD_NAME.getMessage(),
                     args[0], sender.getName(), guild.getName()));
 
             return;
@@ -76,7 +81,7 @@ public class DonorCommand extends Command {
         final Member finalMember = member;
         member.getUser().openPrivateChannel().queue(privateChannel -> {
 
-            privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(messageManager.formatDiscord(Message.VERIFYREQUEST),
+            privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(messageManager.formatDiscord(Message.VERIFY_REQUEST),
                     privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
             waiter.waitForEvent(PrivateMessageReceivedEvent.class, event -> event.getChannel().getId()
                     .equals(privateChannel.getId()) &&
@@ -96,11 +101,11 @@ public class DonorCommand extends Command {
                             }
                         }
                         if (result) {
-                            player.sendMessage(messageManager.replacePlaceholders(Message.ALREADYVERIFIED.getMessage(),
+                            player.sendMessage(messageManager.replacePlaceholders(Message.ALREADY_VERIFIED.getMessage(),
                                     privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
                             privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
-                                    messageManager.formatDiscord(Message.ALREADYVERIFIED),
+                                    messageManager.formatDiscord(Message.ALREADY_VERIFIED),
                                     privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
                             return;
                         }
@@ -118,7 +123,7 @@ public class DonorCommand extends Command {
                     List<String> roleIDs = new ArrayList<>();
                     for (String role : roles) {
                         String value = plugin.getConfig().getSection("roles").getString(role);
-                        if (sender.hasPermission("donorrole.role." + role)) {
+                        if (sender.hasPermission("rolesync.role." + role)) {
                             roleIDs.add(value);
                         }
                     }
@@ -131,19 +136,19 @@ public class DonorCommand extends Command {
                         guild.addRoleToMember(finalMember, role).queue();
                     }
 
-                    sender.sendMessage(messageManager.replacePlaceholders(Message.VERIFIEDMINECRAFT.getMessage(),
+                    sender.sendMessage(messageManager.replacePlaceholders(Message.VERIFIED_MINECRAFT.getMessage(),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
                     privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
-                            messageManager.formatDiscord(Message.VERIFIEDDISCORD),
+                            messageManager.formatDiscord(Message.VERIFIED_DISCORD),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
 
                 } else if (event.getMessage().getContentRaw().equalsIgnoreCase("no")) {
 
                     event.getChannel().sendMessage(messageManager.replacePlaceholdersDiscord(
-                            messageManager.formatDiscord(Message.DENIEDDISCORD),
+                            messageManager.formatDiscord(Message.DENIED_DISCORD),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
-                    sender.sendMessage(messageManager.replacePlaceholders(Message.DENIEDMINECRAFT.getMessage(),
+                    sender.sendMessage(messageManager.replacePlaceholders(Message.DENIED_MINECRAFT.getMessage(),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
                 }
@@ -151,10 +156,10 @@ public class DonorCommand extends Command {
             }, plugin.getConfig().getInt("verifyTimeout"), TimeUnit.MINUTES, () -> {
 
                 privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
-                        messageManager.formatDiscord(Message.TOOLONGDISCORD),
+                        messageManager.formatDiscord(Message.TOO_LONG_DISCORD),
                         privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
 
-                sender.sendMessage(messageManager.replacePlaceholders(Message.TOOLONGMC.getMessage(),
+                sender.sendMessage(messageManager.replacePlaceholders(Message.TOO_LONG_MC.getMessage(),
                         privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
             });

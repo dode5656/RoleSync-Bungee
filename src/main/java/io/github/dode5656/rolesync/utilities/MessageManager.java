@@ -1,6 +1,6 @@
-package io.github.dode5656.donorrole.utilities;
+package io.github.dode5656.rolesync.utilities;
 
-import io.github.dode5656.donorrole.DonorRole;
+import io.github.dode5656.rolesync.RoleSync;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -11,7 +11,7 @@ public class MessageManager {
     private BaseComponent[] prefix;
     private Configuration messages;
 
-    public MessageManager(DonorRole plugin) {
+    public MessageManager(RoleSync plugin) {
         messages = plugin.getMessages().read();
         prefix = color(plugin.getConfig().getString(Message.PREFIX.getMessage()) + " ");
     }
@@ -51,6 +51,6 @@ public class MessageManager {
     }
 
     public final String defaultError(String value) {
-        return this.messages.getString(Message.DEFAULTVALUE.getMessage()).replaceAll("\\{value}", value);
+        return this.messages.getString(Message.DEFAULT_VALUE.getMessage()).replaceAll("\\{value}", value);
     }
 }

@@ -1,10 +1,11 @@
-package io.github.dode5656.donorrole;
+package io.github.dode5656.rolesync;
 
-import io.github.dode5656.donorrole.commands.DonorCommand;
-import io.github.dode5656.donorrole.commands.ReloadCommand;
-import io.github.dode5656.donorrole.events.JoinEvent;
-import io.github.dode5656.donorrole.storage.FileStorage;
-import io.github.dode5656.donorrole.utilities.MessageManager;
+import io.github.dode5656.rolesync.commands.ReloadCommand;
+import io.github.dode5656.rolesync.commands.SyncCommand;
+import io.github.dode5656.rolesync.events.JoinEvent;
+import io.github.dode5656.rolesync.storage.FileStorage;
+import io.github.dode5656.rolesync.utilities.MessageManager;
+import io.github.dode5656.rolesync.utilities.PluginStatus;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -15,16 +16,18 @@ import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.util.logging.Level;
 
-public class DonorRole extends Plugin {
+public class RoleSync extends Plugin {
 
     private FileStorage playerCache;
     private FileStorage messages;
     private FileStorage config;
     private MessageManager messageManager;
     private JDA jda;
+    PluginStatus pluginStatus;
 
     @Override
     public void onEnable() {
+        pluginStatus = PluginStatus.ENABLED;
 
         config = new FileStorage("config.yml", new File(getDataFolder().getPath()));
         config.saveDefaults(this);
@@ -55,7 +58,7 @@ public class DonorRole extends Plugin {
 
         if (!startBot()) { return; }
 
-        getProxy().getPluginManager().registerCommand(this, new DonorCommand(this));
+        getProxy().getPluginManager().registerCommand(this, new SyncCommand(this));
         getProxy().getPluginManager().registerCommand(this, new ReloadCommand(this));
         getProxy().getPluginManager().registerListener(this, new JoinEvent(this));
 
@@ -90,6 +93,14 @@ public class DonorRole extends Plugin {
         return jda;
     }
 
+    public PluginStatus getPluginStatus() {
+        return pluginStatus;
+    }
+
+    public void setPluginStatus(PluginStatus pluginStatus) {
+        this.pluginStatus = pluginStatus;
+    }
+
     private boolean startBot() {
         try {
             this.jda = new JDABuilder(AccountType.BOT).setToken(getConfig().getString("bot-token")).build();
@@ -104,9 +115,6 @@ public class DonorRole extends Plugin {
     }
 
     private void disablePlugin() {
-        getProxy().getPluginManager().unregisterListeners(this);
-        getProxy().getPluginManager().unregisterCommands(this);
-        getProxy().getPluginManager().getPlugin(getClass().getSimpleName()).onDisable();
-        getProxy().getScheduler().cancel(this);
+        pluginStatus = PluginStatus.DISABLED;
     }
 }
