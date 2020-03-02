@@ -24,6 +24,7 @@ public class ReloadCommand extends Command {
         }
         try {
             plugin.getConfigStorage().reload(plugin);
+            plugin.startBot();
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Error while trying to reload config" + e);
             commandSender.sendMessage(plugin.getMessageManager().format(Message.CONFIG_RELOAD_ERROR));
