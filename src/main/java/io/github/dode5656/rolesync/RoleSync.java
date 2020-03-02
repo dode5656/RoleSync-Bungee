@@ -42,18 +42,15 @@ public class RoleSync extends Plugin {
 
             getLogger().severe(messageManager.defaultError("Bot Token"));
             disablePlugin();
-            return;
 
         } else if (getConfig().getString("server-id").equals("REPLACESERVERID")) {
 
             getLogger().severe(messageManager.defaultError("Server ID"));
             disablePlugin();
-            return;
 
         } else if (getConfig().getSection("roles").contains("REPLACEROLEID")) {
             getLogger().severe(messageManager.defaultError("a Role ID"));
             disablePlugin();
-            return;
         }
 
         if (!startBot()) { return; }
