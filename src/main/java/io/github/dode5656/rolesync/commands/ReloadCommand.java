@@ -1,7 +1,6 @@
 package io.github.dode5656.rolesync.commands;
 
 import io.github.dode5656.rolesync.RoleSync;
-import io.github.dode5656.rolesync.events.JoinEvent;
 import io.github.dode5656.rolesync.utilities.Message;
 import io.github.dode5656.rolesync.utilities.PluginStatus;
 import net.md_5.bungee.api.CommandSender;
@@ -29,8 +28,6 @@ public class ReloadCommand extends Command {
             plugin.getConfigChecker().checkDefaults();
             plugin.startBot();
             plugin.getProxy().getPluginManager().registerCommand(plugin, new SyncCommand(plugin));
-            plugin.getProxy().getPluginManager().registerCommand(plugin, new ReloadCommand(plugin));
-            plugin.getProxy().getPluginManager().registerListener(plugin, new JoinEvent(plugin));
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Error while trying to reload config" + e);
             commandSender.sendMessage(plugin.getMessageManager().format(Message.CONFIG_RELOAD_ERROR));
