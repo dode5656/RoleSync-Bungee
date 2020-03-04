@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FileStorage {
-    private File file;
+    private final File file;
     private Configuration fileStorage;
 
     public FileStorage(String name, File location) {

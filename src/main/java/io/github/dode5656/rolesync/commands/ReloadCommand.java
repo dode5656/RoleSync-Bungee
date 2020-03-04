@@ -10,7 +10,7 @@ import net.md_5.bungee.api.plugin.Command;
 import java.util.logging.Level;
 
 public class ReloadCommand extends Command {
-    private RoleSync plugin;
+    private final RoleSync plugin;
 
     public ReloadCommand(final RoleSync plugin) {
         super("rolesyncreload", "", "rreload", "sreload", "syncreload");

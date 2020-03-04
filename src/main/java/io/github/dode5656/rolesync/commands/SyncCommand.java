@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SyncCommand extends Command {
-    private RoleSync plugin;
+    private final RoleSync plugin;
     private EventWaiter waiter;
     private JDA jda;
 

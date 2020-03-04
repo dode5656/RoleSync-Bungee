@@ -8,8 +8,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.config.Configuration;
 
 public class MessageManager {
-    private BaseComponent[] prefix;
-    private Configuration messages;
+    private final BaseComponent[] prefix;
+    private final Configuration messages;
 
     public MessageManager(RoleSync plugin) {
         messages = plugin.getMessages().read();

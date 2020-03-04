@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class JoinEvent implements Listener {
-    private RoleSync plugin;
+    private final RoleSync plugin;
 
     public JoinEvent(RoleSync plugin) {
         this.plugin = plugin;
