@@ -39,7 +39,6 @@ public class MessageManager {
 
     public final BaseComponent[] replacePlaceholders(String msg, String discordTag, String playerName, String guildName) {
         ComponentBuilder componentBuilder = new ComponentBuilder();
-        componentBuilder.append(prefix);
         componentBuilder.append(color(msg
                 .replaceAll("\\{discord_tag}", discordTag)
                 .replaceAll("\\{player_name}", playerName)

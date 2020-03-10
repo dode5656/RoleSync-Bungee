@@ -16,8 +16,8 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.config.Configuration;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SyncCommand extends Command {
@@ -136,18 +136,18 @@ public class SyncCommand extends Command {
                     }
 
                     Collection<String> roles = plugin.getConfig().getSection("roles").getKeys();
-                    List<Role> roleIDs = finalMember.getRoles();
+                    Collection<Role> added = new ArrayList<>();
                     for (String role : roles) {
                         String value = plugin.getConfig().getSection("roles").getString(role);
                         Role roleAffected = guild.getRoleById(value);
                         if (roleAffected == null) continue;
 
                         if (sender.hasPermission("rolesync.role." + role)) {
-                            roleIDs.add(roleAffected);
+                            added.add(roleAffected);
                         }
                     }
 
-                    guild.modifyMemberRoles(finalMember, roleIDs).queue();
+                    guild.modifyMemberRoles(finalMember, added, null).queue();
 
                     sender.sendMessage(messageManager.replacePlaceholders(messageManager.format(Message.VERIFIED_MINECRAFT),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
