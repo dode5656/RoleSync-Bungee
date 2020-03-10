@@ -27,8 +27,12 @@ public class MessageManager {
         return componentBuilder.create();
     }
 
-    public final BaseComponent[] format(Message msg) {
+    public final BaseComponent[] formatBase(Message msg) {
         return format(this.messages.getString(msg.getMessage()));
+    }
+
+    public final String format(Message msg) {
+        return TextComponent.toLegacyText(format(this.messages.getString(msg.getMessage())));
     }
 
     public final String formatDiscord(Message msg) { return this.messages.getString(msg.getMessage()); }

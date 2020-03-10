@@ -16,7 +16,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.config.Configuration;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -39,16 +38,16 @@ public class SyncCommand extends Command {
     public void execute(final CommandSender sender, final String[] args) {
         MessageManager messageManager = plugin.getMessageManager();
         if (plugin.getPluginStatus() == PluginStatus.DISABLED) {
-            sender.sendMessage(messageManager.format(Message.PLUGIN_DISABLED));
+            sender.sendMessage(messageManager.formatBase(Message.PLUGIN_DISABLED));
             return;
         }
         if (!(sender instanceof ProxiedPlayer)) {
-            sender.sendMessage(messageManager.format(Message.PLAYER_ONLY));
+            sender.sendMessage(messageManager.formatBase(Message.PLAYER_ONLY));
             return;
         }
 
         if (!sender.hasPermission("rolesync.use")) {
-            sender.sendMessage(messageManager.format(Message.NO_PERM_CMD));
+            sender.sendMessage(messageManager.formatBase(Message.NO_PERM_CMD));
             return;
         }
 
@@ -63,7 +62,7 @@ public class SyncCommand extends Command {
 
         if (guild == null) {
 
-            sender.sendMessage(messageManager.format(Message.ERROR));
+            sender.sendMessage(messageManager.formatBase(Message.ERROR));
             plugin.getLogger().severe(Message.INVALID_SERVER_ID.getMessage());
             return;
 
@@ -73,12 +72,27 @@ public class SyncCommand extends Command {
             member = guild.getMemberByTag(args[0]);
         } catch (Exception ignored) {
         }
+
         if (member == null) {
 
-            sender.sendMessage(messageManager.replacePlaceholders(Message.BAD_NAME.getMessage(),
-                    args[0], sender.getName(), guild.getName()));
+            boolean result = false;
 
-            return;
+            if (args[0].equals("id")) {
+
+                Member idMember = guild.getMemberById(args[1]);
+                if (idMember != null) {
+                    member = idMember;
+                    result = true;
+                }
+
+            }
+
+            if (!result) {
+                sender.sendMessage(messageManager.replacePlaceholders(messageManager.format(Message.BAD_NAME),
+                        args[0], sender.getName(), guild.getName()));
+
+                return;
+            }
         }
         final Member finalMember = member;
         member.getUser().openPrivateChannel().queue(privateChannel -> {
@@ -103,7 +117,7 @@ public class SyncCommand extends Command {
                             }
                         }
                         if (result) {
-                            player.sendMessage(messageManager.replacePlaceholders(Message.ALREADY_VERIFIED.getMessage(),
+                            player.sendMessage(messageManager.replacePlaceholders(messageManager.format(Message.ALREADY_VERIFIED),
                                     privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
                             privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
@@ -122,23 +136,20 @@ public class SyncCommand extends Command {
                     }
 
                     Collection<String> roles = plugin.getConfig().getSection("roles").getKeys();
-                    List<String> roleIDs = new ArrayList<>();
+                    List<Role> roleIDs = finalMember.getRoles();
                     for (String role : roles) {
                         String value = plugin.getConfig().getSection("roles").getString(role);
+                        Role roleAffected = guild.getRoleById(value);
+                        if (roleAffected == null) continue;
+
                         if (sender.hasPermission("rolesync.role." + role)) {
-                            roleIDs.add(value);
+                            roleIDs.add(roleAffected);
                         }
                     }
 
-                    for (String roleID : roleIDs) {
-                        Role role = guild.getRoleById(roleID);
-                        if (role == null) {
-                            continue;
-                        }
-                        guild.addRoleToMember(finalMember, role).queue();
-                    }
+                    guild.modifyMemberRoles(finalMember, roleIDs).queue();
 
-                    sender.sendMessage(messageManager.replacePlaceholders(Message.VERIFIED_MINECRAFT.getMessage(),
+                    sender.sendMessage(messageManager.replacePlaceholders(messageManager.format(Message.VERIFIED_MINECRAFT),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
                     privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
@@ -150,7 +161,7 @@ public class SyncCommand extends Command {
                     event.getChannel().sendMessage(messageManager.replacePlaceholdersDiscord(
                             messageManager.formatDiscord(Message.DENIED_DISCORD),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
-                    sender.sendMessage(messageManager.replacePlaceholders(Message.DENIED_MINECRAFT.getMessage(),
+                    sender.sendMessage(messageManager.replacePlaceholders(messageManager.format(Message.DENIED_MINECRAFT),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
                 }
@@ -161,7 +172,7 @@ public class SyncCommand extends Command {
                         messageManager.formatDiscord(Message.TOO_LONG_DISCORD),
                         privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
 
-                sender.sendMessage(messageManager.replacePlaceholders(Message.TOO_LONG_MC.getMessage(),
+                sender.sendMessage(messageManager.replacePlaceholders(messageManager.format(Message.TOO_LONG_MC),
                         privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
             });
