@@ -15,6 +15,7 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.event.EventHandler;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -53,19 +54,21 @@ public class JoinEvent implements Listener {
             List<Role> memberRoles = member.getRoles();
 
             Collection<String> roles = plugin.getConfig().getSection("roles").getKeys();
+            Collection<Role> added = new ArrayList<>();
+            Collection<Role> removed = new ArrayList<>();
             for (String role : roles) {
                 String value = plugin.getConfig().getSection("roles").getString(role);
                 Role roleAffected = guild.getRoleById(value);
                 if (roleAffected == null) continue;
                 if (player.hasPermission("rolesync.role." + role) && !memberRoles.contains(guild.getRoleById(value))) {
-                    memberRoles.add(roleAffected);
+                    added.add(roleAffected);
                 } else if (!player.hasPermission("rolesync.role." + role) && memberRoles.contains(guild.getRoleById(value))) {
-                    memberRoles.remove(roleAffected);
+                    removed.add(roleAffected);
                 }
 
             }
 
-            guild.modifyMemberRoles(member, memberRoles).queue();
+            guild.modifyMemberRoles(member, added, removed).queue();
 
             player.sendMessage(new TextComponent(messageManager.format(Message.UPDATED_ROLES)));
         }
