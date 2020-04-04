@@ -40,7 +40,7 @@ public class JoinEvent implements Listener {
 
             if (guild == null) {
 
-                player.sendMessage(new TextComponent(messageManager.format(Message.ERROR)));
+                player.sendMessage(messageManager.formatBase(Message.ERROR));
                 plugin.getLogger().severe(Message.INVALID_SERVER_ID.getMessage());
 
                 return;
@@ -72,7 +72,7 @@ public class JoinEvent implements Listener {
 
             guild.modifyMemberRoles(member, added, removed).queue();
 
-            player.sendMessage(new TextComponent(messageManager.format(Message.UPDATED_ROLES)));
+            player.sendMessage(messageManager.formatBase(Message.UPDATED_ROLES));
         }
 
     }
