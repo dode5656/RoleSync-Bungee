@@ -21,8 +21,7 @@ public class MessageManager {
     }
 
     public final BaseComponent[] format(String msg) {
-        ComponentBuilder componentBuilder = new ComponentBuilder();
-        componentBuilder.append(prefix);
+        ComponentBuilder componentBuilder = new ComponentBuilder(TextComponent.toLegacyText(prefix));
         componentBuilder.append(color(msg));
         return componentBuilder.create();
     }
