@@ -108,7 +108,7 @@ public class SyncCommand extends Command {
                         boolean result = false;
                         for ( String roleID : plugin.getConfig().getSection("roles").getKeys()) {
                             String value = plugin.getConfig().getSection("roles").getString(roleID);
-                            Role role = guild.getRoleById( value);
+                            Role role = guild.getRoleById(value);
                             if (role == null) {
                                 continue;
                             }
