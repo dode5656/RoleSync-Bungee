@@ -38,6 +38,7 @@ public final class RoleSync extends Plugin {
         config.saveDefaults(this);
 
         playerCache = new FileStorage("playerCache.yml", new File(getDataFolder().getPath(), "cache"));
+        playerCache.reload(this);
 
         messages = new FileStorage("messages.yml", new File(getDataFolder().getPath()));
         messages.saveDefaults(this);
@@ -54,7 +55,7 @@ public final class RoleSync extends Plugin {
         getProxy().getPluginManager().registerListener(this, new JoinEvent(this));
 
         if (!getConfig().getBoolean("opt-out-bstats", false)) {
-            int pluginId = 6790;
+            int pluginId = 7396;
             Metrics metrics = new Metrics(this, pluginId);
         }
 
