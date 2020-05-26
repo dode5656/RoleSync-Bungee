@@ -7,13 +7,13 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.config.Configuration;
 
-public final class MessageManager {
+public class MessageManager {
+    private final BaseComponent[] prefix;
     private final Configuration messages;
-    private final RoleSync plugin;
 
     public MessageManager(RoleSync plugin) {
         messages = plugin.getMessages().read();
-        this.plugin = plugin;
+        prefix = color(plugin.getConfig().getString(Message.PREFIX.getMessage()) + " ");
     }
 
     public final BaseComponent[] color(String message) {
@@ -22,7 +22,7 @@ public final class MessageManager {
 
     public final BaseComponent[] format(String msg) {
         ComponentBuilder componentBuilder = new ComponentBuilder();
-        componentBuilder.append(color(plugin.getConfig().getString(Message.PREFIX.getMessage())));
+        componentBuilder.append(prefix);
         componentBuilder.append(color(msg));
         return componentBuilder.create();
     }

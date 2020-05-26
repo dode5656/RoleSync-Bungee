@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public final class FileStorage {
+public class FileStorage {
     private final File file;
     private Configuration fileStorage;
 
@@ -48,30 +48,9 @@ public final class FileStorage {
 
     public final void saveDefaults(RoleSync main) {
         if (this.file.exists()) {
-            Configuration tempConfig = null;
-            try {
-                tempConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
-            } catch (IOException e) {
-                main.getLogger().log(Level.SEVERE, "Couldn't load " + file.getName(), e);
+            reload(main);
+            return;
             }
-
-            if (tempConfig != null && tempConfig.getString("version") != null &&
-                    tempConfig.getString("version").equals(main.getDescription().getVersion())) {
-                reload(main);
-                return;
-            }
-
-            File oldDir = new File(main.getDataFolder().getPath(),"old");
-
-            if (!oldDir.exists()) {
-                oldDir.mkdirs();
-            }
-
-            this.file.renameTo(new File(main.getDataFolder().getPath()+File.separator+"old",
-                    "old_"+this.file.getName()));
-
-
-        }
             if (!file.getParentFile().exists())
                 file.getParentFile().mkdir();
 

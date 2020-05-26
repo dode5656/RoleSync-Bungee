@@ -18,11 +18,9 @@ import net.md_5.bungee.config.Configuration;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public final class SyncCommand extends Command {
+public class SyncCommand extends Command {
     private final RoleSync plugin;
     private EventWaiter waiter;
     private JDA jda;
@@ -56,7 +54,7 @@ public final class SyncCommand extends Command {
         final ProxiedPlayer player = (ProxiedPlayer) sender;
 
         if (args.length < 1) {
-            sender.sendMessage(messageManager.formatBase(Message.USAGE));
+            sender.sendMessage(messageManager.format("/<command> <discordname> - Don't forget the numbers after the #"));
             return;
         }
 
@@ -96,39 +94,6 @@ public final class SyncCommand extends Command {
                 return;
             }
         }
-
-        if (plugin.getPlayerCache().read() != null && plugin.getPlayerCache().read().contains("verified." + player.getUniqueId().toString())) {
-            List<Role> memberRoles = member.getRoles();
-
-            Collection<String> roles = plugin.getConfig().getSection("roles").getKeys();
-            Collection<Role> added = new ArrayList<>();
-            Collection<Role> removed = new ArrayList<>();
-            for (String entry : roles) {
-                String value = plugin.getConfig().getSection("roles").getString(entry);
-                Role role = guild.getRoleById(value);
-                if (role == null) continue;
-                if (player.hasPermission("rolesync.role." + entry) && !memberRoles.contains(guild.getRoleById(value))) {
-                    added.add(role);
-                } else if (!player.hasPermission("rolesync.role." + entry) && memberRoles.contains(guild.getRoleById(value))) {
-                    removed.add(role);
-                }
-
-            }
-
-            if (added.isEmpty() && removed.isEmpty()) {
-                player.sendMessage(messageManager.replacePlaceholders(
-                        messageManager.format(Message.ALREADY_VERIFIED),
-                        member.getUser().getAsTag(), sender.getName(), guild.getName()));
-
-                return;
-            }
-
-            guild.modifyMemberRoles(member, added, removed).queue();
-            player.sendMessage(messageManager.formatBase(Message.UPDATED_ROLES));
-
-            return;
-        }
-
         final Member finalMember = member;
         member.getUser().openPrivateChannel().queue(privateChannel -> {
 
@@ -139,14 +104,36 @@ public final class SyncCommand extends Command {
                     !event.getMessage().getAuthor().isBot(), event -> {
 
                 if (event.getMessage().getContentRaw().equalsIgnoreCase("yes")) {
+                    if (plugin.getPlayerCache().read() != null && plugin.getPlayerCache().read().contains("verified." + player.getUniqueId().toString())) {
+                        boolean result = false;
+                        for ( String roleID : plugin.getConfig().getSection("roles").getKeys()) {
+                            String value = plugin.getConfig().getSection("roles").getString(roleID);
+                            Role role = guild.getRoleById( value);
+                            if (role == null) {
+                                continue;
+                            }
+                            if(finalMember.getRoles().contains(role)) {
+                                result = true;
+                            }
+                        }
+                        if (result) {
+                            player.sendMessage(messageManager.replacePlaceholders(messageManager.format(Message.ALREADY_VERIFIED),
+                                    privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
 
+                            privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
+                                    messageManager.formatDiscord(Message.ALREADY_VERIFIED),
+                                    privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
+                            return;
+                        }
+
+                    } else {
                         plugin.getPlayerCache().reload(plugin);
                         Configuration playerCache = plugin.getPlayerCache().read();
                         playerCache.set("verified." + player.getUniqueId().toString(),
                                 privateChannel.getUser().getId());
                         plugin.getPlayerCache().save(plugin);
-                        plugin.getPlayerCache().reload(plugin);
 
+                    }
 
                     Collection<String> roles = plugin.getConfig().getSection("roles").getKeys();
                     Collection<Role> added = new ArrayList<>();
