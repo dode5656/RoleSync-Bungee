@@ -21,8 +21,8 @@ public final class MessageManager {
     }
 
     public final BaseComponent[] format(String msg) {
-        ComponentBuilder componentBuilder = new ComponentBuilder(
-            TextComponent.toLegacyText(color(plugin.getConfig().getString(Message.PREFIX.getMessage()))));
+        ComponentBuilder componentBuilder = new ComponentBuilder();
+        componentBuilder.append(color(plugin.getConfig().getString(Message.PREFIX.getMessage())));
         componentBuilder.append(color(msg));
         return componentBuilder.create();
     }
@@ -38,10 +38,11 @@ public final class MessageManager {
     public final String formatDiscord(Message msg) { return this.messages.getString(msg.getMessage()); }
 
     public final BaseComponent[] replacePlaceholders(String msg, String discordTag, String playerName, String guildName) {
-        ComponentBuilder componentBuilder = new ComponentBuilder(TextComponent.toLegacyText(color(msg
+        ComponentBuilder componentBuilder = new ComponentBuilder();
+        componentBuilder.append(color(msg
                 .replaceAll("\\{discord_tag}", discordTag)
                 .replaceAll("\\{player_name}", playerName)
-                .replaceAll("\\{discord_server_name}", guildName))));
+                .replaceAll("\\{discord_server_name}", guildName)));
         return componentBuilder.create();
     }
 
