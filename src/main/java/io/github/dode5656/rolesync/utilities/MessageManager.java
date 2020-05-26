@@ -38,11 +38,10 @@ public final class MessageManager {
     public final String formatDiscord(Message msg) { return this.messages.getString(msg.getMessage()); }
 
     public final BaseComponent[] replacePlaceholders(String msg, String discordTag, String playerName, String guildName) {
-        ComponentBuilder componentBuilder = new ComponentBuilder();
-        componentBuilder.append(color(msg
+        ComponentBuilder componentBuilder = new ComponentBuilder(TextComponent.toLegacyText(color(msg
                 .replaceAll("\\{discord_tag}", discordTag)
                 .replaceAll("\\{player_name}", playerName)
-                .replaceAll("\\{discord_server_name}", guildName)));
+                .replaceAll("\\{discord_server_name}", guildName))));
         return componentBuilder.create();
     }
 
