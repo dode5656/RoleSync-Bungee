@@ -2,7 +2,9 @@ package io.github.dode5656.rolesync;
 
 import io.github.dode5656.rolesync.commands.ReloadCommand;
 import io.github.dode5656.rolesync.commands.SyncCommand;
+import io.github.dode5656.rolesync.commands.UnsyncCommand;
 import io.github.dode5656.rolesync.events.JoinEvent;
+import io.github.dode5656.rolesync.events.ReadyListener;
 import io.github.dode5656.rolesync.storage.FileStorage;
 import io.github.dode5656.rolesync.utilities.ConfigChecker;
 import io.github.dode5656.rolesync.utilities.MessageManager;
@@ -12,12 +14,13 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
+import org.bstats.bungeecord.Metrics;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.util.logging.Level;
 
-public class RoleSync extends Plugin {
+public final class RoleSync extends Plugin {
 
     private FileStorage playerCache;
     private FileStorage messages;
@@ -47,7 +50,13 @@ public class RoleSync extends Plugin {
 
         getProxy().getPluginManager().registerCommand(this, new SyncCommand(this));
         getProxy().getPluginManager().registerCommand(this, new ReloadCommand(this));
+        getProxy().getPluginManager().registerCommand(this, new UnsyncCommand(this));
         getProxy().getPluginManager().registerListener(this, new JoinEvent(this));
+
+        if (!getConfig().getBoolean("opt-out-bstats", false)) {
+            int pluginId = 6790;
+            Metrics metrics = new Metrics(this, pluginId);
+        }
 
     }
 
@@ -94,8 +103,7 @@ public class RoleSync extends Plugin {
 
     public void startBot() {
         try {
-            this.jda = new JDABuilder(AccountType.BOT).setToken(getConfig().getString("bot-token")).build();
-
+            this.jda = new JDABuilder(AccountType.BOT).setToken(getConfig().getString("bot-token")).addEventListeners(new ReadyListener(this)).build();
         } catch (LoginException e) {
             getLogger().log(Level.SEVERE, "Error when logging in!");
             disablePlugin();

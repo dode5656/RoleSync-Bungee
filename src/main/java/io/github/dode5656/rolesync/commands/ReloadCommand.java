@@ -9,7 +9,7 @@ import net.md_5.bungee.api.plugin.Command;
 
 import java.util.logging.Level;
 
-public class ReloadCommand extends Command {
+public final class ReloadCommand extends Command {
     private final RoleSync plugin;
 
     public ReloadCommand(final RoleSync plugin) {
@@ -19,7 +19,7 @@ public class ReloadCommand extends Command {
 
     public void execute(final CommandSender commandSender, final String[] strings) {
         if (commandSender instanceof ProxiedPlayer && !commandSender.hasPermission("rolesync.reload")) {
-            commandSender.sendMessage(plugin.getMessageManager().format(Message.NO_PERM_CMD));
+            commandSender.sendMessage(plugin.getMessageManager().formatBase(Message.NO_PERM_CMD));
             return;
         }
         try {
@@ -30,9 +30,9 @@ public class ReloadCommand extends Command {
             plugin.getProxy().getPluginManager().registerCommand(plugin, new SyncCommand(plugin));
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Error while trying to reload config" + e);
-            commandSender.sendMessage(plugin.getMessageManager().format(Message.CONFIG_RELOAD_ERROR));
+            commandSender.sendMessage(plugin.getMessageManager().formatBase(Message.CONFIG_RELOAD_ERROR));
             return;
         }
-        commandSender.sendMessage(plugin.getMessageManager().format(Message.CONFIG_RELOADED));
+        commandSender.sendMessage(plugin.getMessageManager().formatBase(Message.CONFIG_RELOADED));
     }
 }
