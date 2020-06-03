@@ -50,9 +50,10 @@ public final class FileStorage {
         if (this.file.exists()) {
             Configuration tempConfig = null;
             try {
-                tempConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
+                tempConfig = ConfigurationProvider.getProvider(YamlConfiguration.class)
+                        .load(new File(main.getDataFolder().getPath(),"config.yml"));
             } catch (IOException e) {
-                main.getLogger().log(Level.SEVERE, "Couldn't load " + file.getName(), e);
+                main.getLogger().log(Level.SEVERE, "Couldn't load config.yml", e);
             }
 
             if (tempConfig != null && tempConfig.getString("version") != null &&

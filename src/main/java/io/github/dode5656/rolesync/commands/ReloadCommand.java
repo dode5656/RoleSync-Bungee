@@ -24,6 +24,7 @@ public final class ReloadCommand extends Command {
         }
         try {
             plugin.getConfigStorage().reload(plugin);
+            plugin.getMessages().reload(plugin);
             if (plugin.getPluginStatus() == PluginStatus.DISABLED) plugin.setPluginStatus(PluginStatus.ENABLED);
             plugin.getConfigChecker().checkDefaults();
             plugin.startBot();
