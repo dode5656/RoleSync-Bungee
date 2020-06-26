@@ -19,7 +19,7 @@ public final class ReloadCommand extends Command {
 
     public void execute(final CommandSender commandSender, final String[] strings) {
         boolean rgb = false;
-        if (commandSender instanceof ProxiedPlayer &&((ProxiedPlayer) commandSender).getPendingConnection().getVersion() > 735) rgb = true;
+        if (commandSender instanceof ProxiedPlayer &&((ProxiedPlayer) commandSender).getPendingConnection().getVersion() >= 735) rgb = true;
 
         if (commandSender instanceof ProxiedPlayer && !commandSender.hasPermission("rolesync.reload")) {
             commandSender.sendMessage(plugin.getMessageManager().formatBase(Message.NO_PERM_CMD, rgb));

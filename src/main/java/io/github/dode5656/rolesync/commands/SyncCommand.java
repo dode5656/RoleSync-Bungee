@@ -38,7 +38,7 @@ public final class SyncCommand extends Command {
 
     public void execute(final CommandSender sender, final String[] args) {
         boolean rgb = false;
-        if (sender instanceof ProxiedPlayer && ((ProxiedPlayer) sender).getPendingConnection().getVersion() > 735) rgb = true;
+        if (sender instanceof ProxiedPlayer && ((ProxiedPlayer) sender).getPendingConnection().getVersion() >= 735) rgb = true;
         MessageManager messageManager = plugin.getMessageManager();
         if (plugin.getPluginStatus() == PluginStatus.DISABLED) {
             sender.sendMessage(messageManager.formatBase(Message.PLUGIN_DISABLED, rgb));

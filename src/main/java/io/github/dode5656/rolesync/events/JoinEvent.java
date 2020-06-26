@@ -29,7 +29,7 @@ public final class JoinEvent implements Listener {
     public void onJoin(PostLoginEvent e) {
         if (plugin.getPluginStatus() == PluginStatus.DISABLED) return;
         boolean rgb = false;
-        if (e.getPlayer().getPendingConnection().getVersion() > 736) rgb = true;
+        if (e.getPlayer().getPendingConnection().getVersion() >= 735) rgb = true;
         JDA jda = plugin.getJDA();
         ProxiedPlayer player = e.getPlayer();
         Configuration playerCache = plugin.getPlayerCache().read();

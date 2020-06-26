@@ -30,7 +30,7 @@ public class UnsyncCommand extends Command {
     @Override
     public void execute(CommandSender sender, String[] args) {
         boolean rgb = false;
-        if (((ProxiedPlayer) sender).getPendingConnection().getVersion() > 735) rgb = true;
+        if (((ProxiedPlayer) sender).getPendingConnection().getVersion() >= 735) rgb = true;
 
         if (!sender.hasPermission("rolesync.unsync")) {
             sender.sendMessage(plugin.getMessageManager().formatBase(Message.NO_PERM_CMD, rgb));
