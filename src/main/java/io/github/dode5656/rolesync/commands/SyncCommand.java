@@ -19,7 +19,6 @@ import net.md_5.bungee.config.Configuration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public final class SyncCommand extends Command {
@@ -38,25 +37,27 @@ public final class SyncCommand extends Command {
     }
 
     public void execute(final CommandSender sender, final String[] args) {
+        boolean rgb = false;
+        if (sender instanceof ProxiedPlayer && ((ProxiedPlayer) sender).getPendingConnection().getVersion() > 735) rgb = true;
         MessageManager messageManager = plugin.getMessageManager();
         if (plugin.getPluginStatus() == PluginStatus.DISABLED) {
-            sender.sendMessage(messageManager.formatBase(Message.PLUGIN_DISABLED));
+            sender.sendMessage(messageManager.formatBase(Message.PLUGIN_DISABLED, rgb));
             return;
         }
         if (!(sender instanceof ProxiedPlayer)) {
-            sender.sendMessage(messageManager.formatBase(Message.PLAYER_ONLY));
+            sender.sendMessage(messageManager.formatBase(Message.PLAYER_ONLY, rgb));
             return;
         }
 
         if (!sender.hasPermission("rolesync.use")) {
-            sender.sendMessage(messageManager.formatBase(Message.NO_PERM_CMD));
+            sender.sendMessage(messageManager.formatBase(Message.NO_PERM_CMD, rgb));
             return;
         }
 
         final ProxiedPlayer player = (ProxiedPlayer) sender;
 
         if (args.length < 1) {
-            sender.sendMessage(messageManager.formatBase(Message.USAGE));
+            sender.sendMessage(messageManager.formatBase(Message.USAGE, rgb));
             return;
         }
 
@@ -64,7 +65,7 @@ public final class SyncCommand extends Command {
 
         if (guild == null) {
 
-            sender.sendMessage(messageManager.formatBase(Message.ERROR));
+            sender.sendMessage(messageManager.formatBase(Message.ERROR, rgb));
             plugin.getLogger().severe(Message.INVALID_SERVER_ID.getMessage());
             return;
 
@@ -91,7 +92,7 @@ public final class SyncCommand extends Command {
 
             if (!result) {
                 sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.BAD_NAME),
-                        args[0], sender.getName(), guild.getName()));
+                        args[0], sender.getName(), guild.getName(), rgb));
 
                 return;
             }
@@ -118,18 +119,19 @@ public final class SyncCommand extends Command {
             if (added.isEmpty() && removed.isEmpty()) {
                 player.sendMessage(messageManager.replacePlaceholders(
                         messageManager.formatDiscord(Message.ALREADY_VERIFIED),
-                        member.getUser().getAsTag(), sender.getName(), guild.getName()));
+                        member.getUser().getAsTag(), sender.getName(), guild.getName(), rgb));
 
                 return;
             }
 
             guild.modifyMemberRoles(member, added, removed).queue();
-            player.sendMessage(messageManager.formatBase(Message.UPDATED_ROLES));
+            player.sendMessage(messageManager.formatBase(Message.UPDATED_ROLES, rgb));
 
             return;
         }
 
         final Member finalMember = member;
+        boolean finalRgb = rgb;
         member.getUser().openPrivateChannel().queue(privateChannel -> {
 
             privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(messageManager.formatDiscord(Message.VERIFY_REQUEST),
@@ -162,7 +164,7 @@ public final class SyncCommand extends Command {
                     guild.modifyMemberRoles(finalMember, added, null).queue();
 
                     sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.VERIFIED_MINECRAFT),
-                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
+                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), finalRgb));
 
                     privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
                             messageManager.formatDiscord(Message.VERIFIED_DISCORD),
@@ -174,7 +176,7 @@ public final class SyncCommand extends Command {
                             messageManager.formatDiscord(Message.DENIED_DISCORD),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
                     sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.DENIED_MINECRAFT),
-                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
+                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), finalRgb));
 
                 }
 
@@ -185,7 +187,7 @@ public final class SyncCommand extends Command {
                         privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
 
                 sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.TOO_LONG_MC),
-                        privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
+                        privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), finalRgb));
 
             });
 

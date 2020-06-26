@@ -31,11 +31,11 @@ dependencies {
     implementation 'com.jagrosh:jda-utilities-commons:3.0.2'
     implementation 'org.bstats:bstats-bungeecord:1.7'
     implementation 'org.slf4j:slf4j-jdk14:1.7.30'
-    compileOnly 'net.md-5:bungeecord-api:1.15-SNAPSHOT'
+    compileOnly 'net.md-5:bungeecord-api:1.16-R0.2-SNAPSHOT'
 }
 
 group = 'io.github.dode5656'
-version = '1.2.0-BETA'
+version = '1.2.0-BETA-1.1'
 sourceCompatibility = '1.8'
 
 shadowJar {

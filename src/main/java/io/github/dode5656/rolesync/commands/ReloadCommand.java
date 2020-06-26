@@ -18,8 +18,11 @@ public final class ReloadCommand extends Command {
     }
 
     public void execute(final CommandSender commandSender, final String[] strings) {
+        boolean rgb = false;
+        if (commandSender instanceof ProxiedPlayer &&((ProxiedPlayer) commandSender).getPendingConnection().getVersion() > 735) rgb = true;
+
         if (commandSender instanceof ProxiedPlayer && !commandSender.hasPermission("rolesync.reload")) {
-            commandSender.sendMessage(plugin.getMessageManager().formatBase(Message.NO_PERM_CMD));
+            commandSender.sendMessage(plugin.getMessageManager().formatBase(Message.NO_PERM_CMD, rgb));
             return;
         }
         try {
@@ -31,9 +34,9 @@ public final class ReloadCommand extends Command {
             plugin.getProxy().getPluginManager().registerCommand(plugin, new SyncCommand(plugin));
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Error while trying to reload config" + e);
-            commandSender.sendMessage(plugin.getMessageManager().formatBase(Message.CONFIG_RELOAD_ERROR));
+            commandSender.sendMessage(plugin.getMessageManager().formatBase(Message.CONFIG_RELOAD_ERROR, rgb));
             return;
         }
-        commandSender.sendMessage(plugin.getMessageManager().formatBase(Message.CONFIG_RELOADED));
+        commandSender.sendMessage(plugin.getMessageManager().formatBase(Message.CONFIG_RELOADED, rgb));
     }
 }
