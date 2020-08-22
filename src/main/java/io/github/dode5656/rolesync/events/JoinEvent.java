@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -19,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class JoinEvent implements Listener {
+public final class JoinEvent implements Listener {
     private final RoleSync plugin;
 
     public JoinEvent(RoleSync plugin) {
@@ -29,6 +28,8 @@ public class JoinEvent implements Listener {
     @EventHandler
     public void onJoin(PostLoginEvent e) {
         if (plugin.getPluginStatus() == PluginStatus.DISABLED) return;
+        boolean rgb = false;
+        if (e.getPlayer().getPendingConnection().getVersion() >= 735) rgb = true;
         JDA jda = plugin.getJDA();
         ProxiedPlayer player = e.getPlayer();
         Configuration playerCache = plugin.getPlayerCache().read();
@@ -40,7 +41,7 @@ public class JoinEvent implements Listener {
 
             if (guild == null) {
 
-                player.sendMessage(messageManager.formatBase(Message.ERROR));
+                player.sendMessage(messageManager.formatBase(Message.ERROR, rgb));
                 plugin.getLogger().severe(Message.INVALID_SERVER_ID.getMessage());
 
                 return;
@@ -72,7 +73,7 @@ public class JoinEvent implements Listener {
 
             guild.modifyMemberRoles(member, added, removed).queue();
 
-            player.sendMessage(messageManager.formatBase(Message.UPDATED_ROLES));
+            player.sendMessage(messageManager.formatBase(Message.UPDATED_ROLES, rgb));
         }
 
     }
