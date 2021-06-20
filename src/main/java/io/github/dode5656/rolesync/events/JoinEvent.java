@@ -53,14 +53,18 @@ public final class JoinEvent implements Listener {
             Collection<Role> removed = new ArrayList<>();
             plugin.getUtil().populateAddedRemoved(guild,roles,player,memberRoles,added,removed);
 
-            if (!added.isEmpty() || !removed.isEmpty())
-                if (!plugin.getUtil().modifyMemberRoles(guild,member,added,removed,player)) return;
+            boolean changed = false;
+            if (!added.isEmpty() || !removed.isEmpty()) {
+                if (!plugin.getUtil().modifyMemberRoles(guild, member, added, removed, player)) return;
+                changed = true;
+            }
 
             String nickname = this.plugin.getConfig().getString("nickname-format").replaceAll("\\{ign}", player.getName());
-            if (this.plugin.getConfig().getBoolean("change-nickname") && (member.getNickname() == null || !member.getNickname().equals(nickname)))
-                if (!plugin.getUtil().changeNickname(guild,member,player)) return;
-
-            player.sendMessage(messageManager.formatBase(Message.UPDATED_ROLES, rgb));
+            if (this.plugin.getConfig().getBoolean("change-nickname") && (member.getNickname() == null || !member.getNickname().equals(nickname))) {
+                if (!plugin.getUtil().changeNickname(guild, member, player)) return;
+                changed = true;
+            }
+            if (changed) player.sendMessage(messageManager.formatBase(Message.UPDATED_ROLES, rgb));
         }
 
     }
