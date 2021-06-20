@@ -35,13 +35,17 @@ public final class MessageManager {
         return TextComponent.toLegacyText(format(plugin.getMessages().read().getString(msg.getMessage()), rgb));
     }
 
+    public final String format(BaseComponent[] msg) {
+        return TextComponent.toLegacyText(msg);
+    }
+
     public final String formatDiscord(Message msg) { return plugin.getMessages().read().getString(msg.getMessage()); }
 
     public final BaseComponent[] replacePlaceholders(String msg, String discordTag, String playerName, String guildName, boolean rgb) {
         return color(plugin.getConfig().getString(Message.PREFIX.getMessage())+msg
-                .replaceAll("\\{discord_tag}", discordTag)
-                .replaceAll("\\{player_name}", playerName)
-                .replaceAll("\\{discord_server_name}", guildName), rgb);
+                .replaceAll("\\{discord_tag}", Matcher.quoteReplacement(discordTag))
+                .replaceAll("\\{player_name}", Matcher.quoteReplacement(playerName))
+                .replaceAll("\\{discord_server_name}", Matcher.quoteReplacement(guildName)), rgb);
     }
 
     public final String replacePlaceholdersDiscord(String msg, String discordTag, String playerName, String guildName) {

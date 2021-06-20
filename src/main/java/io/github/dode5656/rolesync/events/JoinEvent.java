@@ -27,51 +27,38 @@ public final class JoinEvent implements Listener {
 
     @EventHandler
     public void onJoin(PostLoginEvent e) {
+        boolean rgb = e.getPlayer().getPendingConnection().getVersion() >= 735;
         if (plugin.getPluginStatus() == PluginStatus.DISABLED) return;
-        boolean rgb = false;
-        if (e.getPlayer().getPendingConnection().getVersion() >= 735) rgb = true;
         JDA jda = plugin.getJDA();
-        ProxiedPlayer player = e.getPlayer();
         Configuration playerCache = plugin.getPlayerCache().read();
         MessageManager messageManager = plugin.getMessageManager();
+        ProxiedPlayer player = e.getPlayer();
 
         if (playerCache == null) return;
         if (playerCache.contains("verified." + player.getUniqueId().toString())) {
             Guild guild = jda.getGuildById(plugin.getConfig().getString("server-id"));
 
             if (guild == null) {
-
-                player.sendMessage(messageManager.formatBase(Message.ERROR, rgb));
+                player.sendMessage(messageManager.formatBase(Message.ERROR,rgb));
                 plugin.getLogger().severe(Message.INVALID_SERVER_ID.getMessage());
-
                 return;
-
             }
 
-            Member member = guild.getMemberById(playerCache.getString("verified." + player.getUniqueId().toString()));
-
+            Member member = guild.retrieveMemberById(playerCache.getString("verified." + player.getUniqueId().toString())).complete();
             if (member == null) return;
-
             List<Role> memberRoles = member.getRoles();
 
             Collection<String> roles = plugin.getConfig().getSection("roles").getKeys();
             Collection<Role> added = new ArrayList<>();
             Collection<Role> removed = new ArrayList<>();
-            for (String role : roles) {
-                String value = plugin.getConfig().getSection("roles").getString(role);
-                Role roleAffected = guild.getRoleById(value);
-                if (roleAffected == null) continue;
-                if (player.hasPermission("rolesync.role." + role) && !memberRoles.contains(guild.getRoleById(value))) {
-                    added.add(roleAffected);
-                } else if (!player.hasPermission("rolesync.role." + role) && memberRoles.contains(guild.getRoleById(value))) {
-                    removed.add(roleAffected);
-                }
+            plugin.getUtil().populateAddedRemoved(guild,roles,player,memberRoles,added,removed);
 
-            }
+            if (!added.isEmpty() || !removed.isEmpty())
+                if (!plugin.getUtil().modifyMemberRoles(guild,member,added,removed,player)) return;
 
-            if (added.isEmpty() && removed.isEmpty()) return;
-
-            guild.modifyMemberRoles(member, added, removed).queue();
+            String nickname = this.plugin.getConfig().getString("nickname-format").replaceAll("\\{ign}", player.getName());
+            if (this.plugin.getConfig().getBoolean("change-nickname") && (member.getNickname() == null || !member.getNickname().equals(nickname)))
+                if (!plugin.getUtil().changeNickname(guild,member,player)) return;
 
             player.sendMessage(messageManager.formatBase(Message.UPDATED_ROLES, rgb));
         }

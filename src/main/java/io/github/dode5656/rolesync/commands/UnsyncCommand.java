@@ -14,7 +14,7 @@ import net.md_5.bungee.api.plugin.Command;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class UnsyncCommand extends Command {
+public final class UnsyncCommand extends Command {
 
     private final RoleSync plugin;
     private JDA jda;
@@ -29,8 +29,7 @@ public class UnsyncCommand extends Command {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        boolean rgb = false;
-        if (((ProxiedPlayer) sender).getPendingConnection().getVersion() >= 735) rgb = true;
+        boolean rgb = ((ProxiedPlayer) sender).getPendingConnection().getVersion() >= 735;
 
         if (!sender.hasPermission("rolesync.unsync")) {
             sender.sendMessage(plugin.getMessageManager().formatBase(Message.NO_PERM_CMD, rgb));
@@ -70,19 +69,15 @@ public class UnsyncCommand extends Command {
             return;
         }
 
-
         Guild guild = jda.getGuildById(plugin.getConfig().getString("server-id"));
 
         if (guild == null) {
-
             player.sendMessage(plugin.getMessageManager().formatBase(Message.ERROR, rgb));
             plugin.getLogger().severe(Message.INVALID_SERVER_ID.getMessage());
-
             return;
-
         }
 
-        Member member = guild.getMemberById(plugin.getPlayerCache().read().getString("verified." + player.getUniqueId().toString()));
+        Member member = guild.retrieveMemberById(plugin.getPlayerCache().read().getString("verified." + player.getUniqueId().toString())).complete();
 
         if (member == null) return;
 
@@ -93,12 +88,12 @@ public class UnsyncCommand extends Command {
             Role role = guild.getRoleById(value);
             if (role == null) continue;
             removed.add(role);
-
         }
 
         if (removed.isEmpty()) return;
 
-        guild.modifyMemberRoles(member, null, removed).queue();
+        if(!plugin.getUtil().modifyMemberRoles(guild,member,null,removed,player)) return;
+        if(!plugin.getUtil().changeNickname(guild,member,player,null)) return;
 
         plugin.getPlayerCache().read().set("verified."+player.getUniqueId().toString() ,null);
 

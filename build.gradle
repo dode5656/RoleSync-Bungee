@@ -18,29 +18,32 @@ repositories {
     }
 
     maven {
-        url = uri('https://jcenter.bintray.com')
+        name 'm2-dv8tion'
+        url 'https://m2.dv8tion.net/releases'
     }
 
     mavenCentral()
 }
 
 dependencies {
-    compile ('net.dv8tion:JDA:4.1.1_110') {
+    implementation ('net.dv8tion:JDA:4.2.1_273') {
         exclude module: 'opus-java'
     }
     implementation 'com.jagrosh:jda-utilities-commons:3.0.2'
     implementation 'org.bstats:bstats-bungeecord:1.7'
-    implementation 'org.slf4j:slf4j-jdk14:1.7.30'
+    runtimeOnly 'org.slf4j:slf4j-jdk14:1.7.30'
     compileOnly 'net.md-5:bungeecord-api:1.16-R0.2-SNAPSHOT'
 }
 
 group = 'io.github.dode5656'
-version = '1.2.0-BETA-1.1'
+version = '1.2.0-BETA-1.3'
 sourceCompatibility = '1.8'
 
 shadowJar {
-    relocate "org.slf4j", "io.github.dode5656"
-    relocate "org.bstats", "io.github.dode5656"
+    relocate "org.slf4j", "io.github.dode5656.libs.slf4j"
+    relocate "org.bstats", "io.github.dode5656.libs.bstats"
+    relocate "com.jagrosh", "io.github.dode5656.libs.jdautils"
+    relocate "net.dv8tion", "io.github.dode5656.libs.jda"
     classifier = ""
     minimize()
 }

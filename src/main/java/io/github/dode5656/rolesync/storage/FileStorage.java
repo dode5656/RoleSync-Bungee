@@ -47,11 +47,12 @@ public final class FileStorage {
     }
 
     public final void saveDefaults(RoleSync main) {
-        if (this.file.exists()) {
+        File configFile = new File(main.getDataFolder().getPath(),"config.yml");
+        if (this.file.exists() && configFile.exists()) {
             Configuration tempConfig = null;
             try {
                 tempConfig = ConfigurationProvider.getProvider(YamlConfiguration.class)
-                        .load(new File(main.getDataFolder().getPath(),"config.yml"));
+                        .load(configFile);
             } catch (IOException e) {
                 main.getLogger().log(Level.SEVERE, "Couldn't load config.yml", e);
             }

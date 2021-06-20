@@ -37,8 +37,7 @@ public final class SyncCommand extends Command {
     }
 
     public void execute(final CommandSender sender, final String[] args) {
-        boolean rgb = false;
-        if (sender instanceof ProxiedPlayer && ((ProxiedPlayer) sender).getPendingConnection().getVersion() >= 735) rgb = true;
+        boolean rgb = sender instanceof ProxiedPlayer && ((ProxiedPlayer) sender).getPendingConnection().getVersion() >= 735;
         MessageManager messageManager = plugin.getMessageManager();
         if (plugin.getPluginStatus() == PluginStatus.DISABLED) {
             sender.sendMessage(messageManager.formatBase(Message.PLUGIN_DISABLED, rgb));
@@ -64,12 +63,11 @@ public final class SyncCommand extends Command {
         final Guild guild = jda.getGuildById(plugin.getConfig().getString("server-id"));
 
         if (guild == null) {
-
             sender.sendMessage(messageManager.formatBase(Message.ERROR, rgb));
             plugin.getLogger().severe(Message.INVALID_SERVER_ID.getMessage());
             return;
-
         }
+
         Member member = null;
         try {
             member = guild.getMemberByTag(args[0]);
@@ -77,23 +75,18 @@ public final class SyncCommand extends Command {
         }
 
         if (member == null) {
-
             boolean result = false;
-
             if (args[0].equals("id")) {
-
-                Member idMember = guild.getMemberById(args[1]);
+                Member idMember = guild.retrieveMemberById(args[1]).complete();
                 if (idMember != null) {
                     member = idMember;
                     result = true;
                 }
-
             }
 
             if (!result) {
                 sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.BAD_NAME),
                         args[0], sender.getName(), guild.getName(), rgb));
-
                 return;
             }
         }
@@ -101,22 +94,20 @@ public final class SyncCommand extends Command {
         if (plugin.getPlayerCache().read() != null && plugin.getPlayerCache().read().contains("verified." + player.getUniqueId().toString())) {
             List<Role> memberRoles = member.getRoles();
 
+            if (!plugin.getPlayerCache().read().getString("verified." + player.getUniqueId().toString()).equals(member.getId())) {
+                player.sendMessage(messageManager.replacePlaceholders(messageManager
+                        .formatDiscord(Message.ALREADY_VERIFIED), member
+                        .getUser().getAsTag(), sender.getName(), guild.getName(),rgb));
+                return;
+            }
+
             Collection<String> roles = plugin.getConfig().getSection("roles").getKeys();
             Collection<Role> added = new ArrayList<>();
             Collection<Role> removed = new ArrayList<>();
-            for (String entry : roles) {
-                String value = plugin.getConfig().getSection("roles").getString(entry);
-                Role role = guild.getRoleById(value);
-                if (role == null) continue;
-                if (player.hasPermission("rolesync.role." + entry) && !memberRoles.contains(guild.getRoleById(value))) {
-                    added.add(role);
-                } else if (!player.hasPermission("rolesync.role." + entry) && memberRoles.contains(guild.getRoleById(value))) {
-                    removed.add(role);
-                }
+            plugin.getUtil().populateAddedRemoved(guild,roles,player,memberRoles,added,removed);
 
-            }
-
-            if (added.isEmpty() && removed.isEmpty()) {
+            String nickname = plugin.getConfig().getString("nickname-format").replaceAll("\\{ign}", player.getName());
+            if (added.isEmpty() && removed.isEmpty() && member.getNickname() != null && member.getNickname().equals(nickname)) {
                 player.sendMessage(messageManager.replacePlaceholders(
                         messageManager.formatDiscord(Message.ALREADY_VERIFIED),
                         member.getUser().getAsTag(), sender.getName(), guild.getName(), rgb));
@@ -124,23 +115,37 @@ public final class SyncCommand extends Command {
                 return;
             }
 
-            guild.modifyMemberRoles(member, added, removed).queue();
+            if (!added.isEmpty() || !removed.isEmpty())
+                if (!plugin.getUtil().modifyMemberRoles(guild,member,added,removed,player)) return;
+            if (this.plugin.getConfig().getBoolean("change-nickname"))
+                if (!plugin.getUtil().changeNickname(guild,member,player)) return;
             player.sendMessage(messageManager.formatBase(Message.UPDATED_ROLES, rgb));
 
             return;
         }
 
+        if (plugin.getPlayerCache().read() != null) {
+            Configuration verified = plugin.getPlayerCache().read().getSection("verified");
+            if (verified != null && plugin.getUtil().sectionContainsValue(verified,member.getId())) {
+                player.sendMessage(messageManager.replacePlaceholders(messageManager
+                        .formatDiscord(Message.ALREADY_VERIFIED), member
+                        .getUser().getAsTag(), sender.getName(), guild.getName(), rgb));
+                return;
+            }
+        }
+
         final Member finalMember = member;
-        boolean finalRgb = rgb;
         member.getUser().openPrivateChannel().queue(privateChannel -> {
 
             privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(messageManager.formatDiscord(Message.VERIFY_REQUEST),
-                    privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
-            waiter.waitForEvent(PrivateMessageReceivedEvent.class, event -> event.getChannel().getId()
-                    .equals(privateChannel.getId()) &&
-                    !event.getMessage().getAuthor().isBot(), event -> {
+                    privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue(m->{
+                player.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.REQUEST_REPLY),
+                        privateChannel.getUser().getAsTag(),sender.getName(),guild.getName(),rgb));
+                waiter.waitForEvent(PrivateMessageReceivedEvent.class, event -> event.getChannel().getId()
+                        .equals(privateChannel.getId()) &&
+                        !event.getMessage().getAuthor().isBot(), event -> {
 
-                if (event.getMessage().getContentRaw().equalsIgnoreCase("yes")) {
+                    if (event.getMessage().getContentRaw().equalsIgnoreCase("yes")) {
 
                         plugin.getPlayerCache().reload(plugin);
                         Configuration playerCache = plugin.getPlayerCache().read();
@@ -149,49 +154,51 @@ public final class SyncCommand extends Command {
                         plugin.getPlayerCache().save(plugin);
 
 
-                    Collection<String> roles = plugin.getConfig().getSection("roles").getKeys();
-                    Collection<Role> added = new ArrayList<>();
-                    for (String role : roles) {
-                        String value = plugin.getConfig().getSection("roles").getString(role);
-                        Role roleAffected = guild.getRoleById(value);
-                        if (roleAffected == null) continue;
+                        Collection<String> roles = plugin.getConfig().getSection("roles").getKeys();
+                        Collection<Role> added = new ArrayList<>();
+                        for (String role : roles) {
+                            String value = plugin.getConfig().getSection("roles").getString(role);
+                            Role roleAffected = guild.getRoleById(value);
+                            if (roleAffected == null) continue;
 
-                        if (sender.hasPermission("rolesync.role." + role)) {
-                            added.add(roleAffected);
+                            if (sender.hasPermission("rolesync.role." + role)) {
+                                added.add(roleAffected);
+                            }
                         }
+
+                        if (!plugin.getUtil().modifyMemberRoles(guild,finalMember,added,null,player)) return;
+                        if (plugin.getConfig().getBoolean("change-nickname"))
+                            if (!plugin.getUtil().changeNickname(guild,finalMember,player)) return;
+
+                        sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.VERIFIED_MINECRAFT),
+                                privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), rgb));
+
+                        privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
+                                messageManager.formatDiscord(Message.VERIFIED_DISCORD),
+                                privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
+
+                    } else if (event.getMessage().getContentRaw().equalsIgnoreCase("no")) {
+
+                        event.getChannel().sendMessage(messageManager.replacePlaceholdersDiscord(
+                                messageManager.formatDiscord(Message.DENIED_DISCORD),
+                                privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
+                        sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.DENIED_MINECRAFT),
+                                privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), rgb));
+
                     }
 
-                    guild.modifyMemberRoles(finalMember, added, null).queue();
-
-                    sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.VERIFIED_MINECRAFT),
-                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), finalRgb));
+                }, plugin.getConfig().getInt("verifyTimeout"), TimeUnit.MINUTES, () -> {
 
                     privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
-                            messageManager.formatDiscord(Message.VERIFIED_DISCORD),
+                            messageManager.formatDiscord(Message.TOO_LONG_DISCORD),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
 
-                } else if (event.getMessage().getContentRaw().equalsIgnoreCase("no")) {
+                    sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.TOO_LONG_MC),
+                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), rgb));
 
-                    event.getChannel().sendMessage(messageManager.replacePlaceholdersDiscord(
-                            messageManager.formatDiscord(Message.DENIED_DISCORD),
-                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
-                    sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.DENIED_MINECRAFT),
-                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), finalRgb));
-
-                }
-
-            }, plugin.getConfig().getInt("verifyTimeout"), TimeUnit.MINUTES, () -> {
-
-                privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
-                        messageManager.formatDiscord(Message.TOO_LONG_DISCORD),
-                        privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
-
-                sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.TOO_LONG_MC),
-                        privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), finalRgb));
-
-            });
-
+                });
+            },e->player.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.DM_FAILED),
+                    finalMember.getUser().getAsTag(), sender.getName(), guild.getName(),rgb)));
         });
-
     }
 }

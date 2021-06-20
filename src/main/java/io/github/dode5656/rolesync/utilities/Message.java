@@ -24,8 +24,11 @@ public enum Message {
     USAGE("messages.usage"),
     PLAYER_NOT_FOUND("messages.player-not-found"),
     NOT_SYNCED("messages.not-synced"),
-    UNSYNCED_SUCCESSFULLY("messages.unsynced-successfully");
-    private String key;
+    UNSYNCED_SUCCESSFULLY("messages.unsynced-successfully"),
+    DM_FAILED("messages.dm-failed"),
+    REQUEST_REPLY("messages.request-reply"),
+    HIERARCHY_ERROR("messages.hierarchy-error");
+    private final String key;
 
     Message(String s) {
         this.key = s;

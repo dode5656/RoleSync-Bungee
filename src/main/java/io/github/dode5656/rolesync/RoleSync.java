@@ -9,9 +9,11 @@ import io.github.dode5656.rolesync.storage.FileStorage;
 import io.github.dode5656.rolesync.utilities.ConfigChecker;
 import io.github.dode5656.rolesync.utilities.MessageManager;
 import io.github.dode5656.rolesync.utilities.PluginStatus;
-import net.dv8tion.jda.api.AccountType;
+import io.github.dode5656.rolesync.utilities.Util;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import org.bstats.bungeecord.Metrics;
@@ -29,23 +31,27 @@ public final class RoleSync extends Plugin {
     private JDA jda;
     private PluginStatus pluginStatus;
     private ConfigChecker configChecker;
+    private Util util;
 
     @Override
     public void onEnable() {
         pluginStatus = PluginStatus.ENABLED;
-
-        config = new FileStorage("config.yml", new File(getDataFolder().getPath()));
-        config.saveDefaults(this);
 
         playerCache = new FileStorage("playerCache.yml", new File(getDataFolder().getPath(), "cache"));
         playerCache.reload(this);
 
         messages = new FileStorage("messages.yml", new File(getDataFolder().getPath()));
         messages.saveDefaults(this);
+
+        config = new FileStorage("config.yml", new File(getDataFolder().getPath()));
+        config.saveDefaults(this);
+
         messageManager = new MessageManager(this);
 
         configChecker = new ConfigChecker(this);
         configChecker.checkDefaults();
+
+        util = new Util(this);
 
         startBot();
 
@@ -58,7 +64,6 @@ public final class RoleSync extends Plugin {
             int pluginId = 7396;
             Metrics metrics = new Metrics(this, pluginId);
         }
-
     }
 
     @Override
@@ -102,10 +107,13 @@ public final class RoleSync extends Plugin {
         return configChecker;
     }
 
+    public Util getUtil() { return util; }
+
     public void startBot() {
         try {
-            this.jda = new JDABuilder(AccountType.BOT).setToken(getConfig().getString("bot-token")).addEventListeners(new ReadyListener(this)).build();
-        } catch (LoginException e) {
+            this.jda = JDABuilder.createDefault(getConfig().getString("bot-token")).enableIntents(GatewayIntent.GUILD_MEMBERS)
+                    .setMemberCachePolicy(MemberCachePolicy.ALL).addEventListeners(new ReadyListener(this)).build();
+        }  catch (LoginException e) {
             getLogger().log(Level.SEVERE, "Error when logging in!");
             disablePlugin();
         }
