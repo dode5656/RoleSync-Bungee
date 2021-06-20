@@ -40,6 +40,8 @@ public final class RoleSync extends Plugin {
         playerCache = new FileStorage("playerCache.yml", new File(getDataFolder().getPath(), "cache"));
         playerCache.reload(this);
 
+        util = new Util(this);
+
         messages = new FileStorage("messages.yml", new File(getDataFolder().getPath()));
         messages.saveDefaults(this);
 
@@ -50,8 +52,6 @@ public final class RoleSync extends Plugin {
 
         configChecker = new ConfigChecker(this);
         configChecker.checkDefaults();
-
-        util = new Util(this);
 
         startBot();
 

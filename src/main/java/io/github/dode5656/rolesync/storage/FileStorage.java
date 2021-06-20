@@ -1,6 +1,7 @@
 package io.github.dode5656.rolesync.storage;
 
 import io.github.dode5656.rolesync.RoleSync;
+import io.github.dode5656.rolesync.utilities.Version;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -57,10 +58,18 @@ public final class FileStorage {
                 main.getLogger().log(Level.SEVERE, "Couldn't load config.yml", e);
             }
 
-            if (tempConfig != null && tempConfig.getString("version") != null &&
-                    tempConfig.getString("version").equals(main.getDescription().getVersion())) {
-                reload(main);
-                return;
+            if (tempConfig != null && tempConfig.getString("version") != null) {
+                String configVersion = tempConfig.getString("version");
+                Version[] versions = Version.values();
+                for (Version version : versions) {
+                    if (version.getVersion().equals(configVersion)) {
+                        if (!version.configUpdated()) {
+                            reload(main);
+                            return;
+                        }
+                        break;
+                    }
+                }
             }
 
             File oldDir = new File(main.getDataFolder().getPath(),"old");
