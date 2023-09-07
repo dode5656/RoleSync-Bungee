@@ -38,8 +38,9 @@ public final class Util {
     }
 
     public boolean changeNickname(Guild guild, Member member, ProxiedPlayer player) {
-        return changeNickname(guild,member,player,plugin.getConfig().getString("nickname-format")
-                .replaceAll("\\{ign}", player.getName()));
+        String nickname = plugin.getMessageManager().replacePlaceholdersDiscord(plugin.getConfig().getString("nickname-format")
+                .replaceAll("\\{ign}", player.getName()),member.getUser().getAsTag(),player.getName(),guild.getName());
+        return changeNickname(guild,member,player,nickname);
     }
 
     public boolean changeNickname(Guild guild, Member member, ProxiedPlayer player, String nickname) {

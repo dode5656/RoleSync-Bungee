@@ -39,8 +39,8 @@ public final class JoinEvent implements Listener {
             Guild guild = jda.getGuildById(plugin.getConfig().getString("server-id"));
 
             if (guild == null) {
-                player.sendMessage(messageManager.formatBase(Message.ERROR,rgb));
-                plugin.getLogger().severe(Message.INVALID_SERVER_ID.getMessage());
+                player.sendMessage(messageManager.formatBase(Message.ERROR, rgb));
+                plugin.getLogger().severe(messageManager.format(Message.INVALID_SERVER_ID,rgb));
                 return;
             }
 
@@ -59,7 +59,8 @@ public final class JoinEvent implements Listener {
                 changed = true;
             }
 
-            String nickname = this.plugin.getConfig().getString("nickname-format").replaceAll("\\{ign}", player.getName());
+            String nickname = plugin.getMessageManager().replacePlaceholdersDiscord(plugin.getConfig().getString("nickname-format")
+                    .replaceAll("\\{ign}", player.getName()),member.getUser().getAsTag(),player.getName(),guild.getName());
             if (this.plugin.getConfig().getBoolean("change-nickname") && (member.getNickname() == null || !member.getNickname().equals(nickname))) {
                 if (!plugin.getUtil().changeNickname(guild, member, player)) return;
                 changed = true;

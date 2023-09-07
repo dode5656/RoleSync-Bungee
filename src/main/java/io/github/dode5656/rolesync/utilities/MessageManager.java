@@ -1,6 +1,9 @@
 package io.github.dode5656.rolesync.utilities;
 
 import io.github.dode5656.rolesync.RoleSync;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.user.User;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -42,17 +45,34 @@ public final class MessageManager {
     public final String formatDiscord(Message msg) { return plugin.getMessages().read().getString(msg.getMessage()); }
 
     public final BaseComponent[] replacePlaceholders(String msg, String discordTag, String playerName, String guildName, boolean rgb) {
+        LuckPerms api = LuckPermsProvider.get();
+        String prefix = "\\{luckperms_prefix}";
+        User lpuser = api.getUserManager().getUser(playerName);
+        if (lpuser != null) prefix = lpuser.getCachedData().getMetaData().getPrefix();
         return color(plugin.getConfig().getString(Message.PREFIX.getMessage())+msg
                 .replaceAll("\\{discord_tag}", Matcher.quoteReplacement(discordTag))
                 .replaceAll("\\{player_name}", Matcher.quoteReplacement(playerName))
-                .replaceAll("\\{discord_server_name}", Matcher.quoteReplacement(guildName)), rgb);
+                .replaceAll("\\{discord_server_name}", Matcher.quoteReplacement(guildName))
+                .replaceAll("\\{luckperms_prefix}", Matcher.quoteReplacement(prefix == null ? "" : prefix)), rgb);
     }
 
     public final String replacePlaceholdersDiscord(String msg, String discordTag, String playerName, String guildName) {
-        return msg
-                .replaceAll("\\{discord_tag}", discordTag)
-                .replaceAll("\\{player_name}", playerName)
-                .replaceAll("\\{discord_server_name}", guildName);
+        String prefix = "{luckperms_prefix}";
+        String suffix = "{luckperms_suffix}";
+        if (plugin.getProxy().getPluginManager().getPlugin("LuckPerms") != null) {
+            LuckPerms api = LuckPermsProvider.get();
+            User lpuser = api.getUserManager().getUser(playerName);
+            if (lpuser != null) prefix = lpuser.getCachedData().getMetaData().getPrefix();
+            if (lpuser != null) suffix = lpuser.getCachedData().getMetaData().getSuffix();
+        }
+
+        return ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&',
+                convertHexToColor(msg
+                .replaceAll("\\{discord_tag}", Matcher.quoteReplacement(discordTag))
+                .replaceAll("\\{player_name}", Matcher.quoteReplacement(playerName))
+                .replaceAll("\\{discord_server_name}", Matcher.quoteReplacement(guildName))
+                .replaceAll("\\{luckperms_prefix}", Matcher.quoteReplacement(prefix == null ? "" : prefix))
+                .replaceAll("\\{luckperms_suffix}", Matcher.quoteReplacement(suffix == null ? "" : suffix)))));
     }
 
     public final String defaultError(String value) {
