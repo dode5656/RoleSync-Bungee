@@ -1,7 +1,7 @@
 # Placeholders: {discord_tag}, {player_name}, {discord_server_name}
 # Feel free to replace the messages to your choice.
 messages:
-  verifyRequest: "Hey! A user with the minecraft name `{player_name}` has made a request to verify their account and receive a special rank in the {discord_server_name} server. Did you make this request? Reply with `Yes` or `No`. You have 2 minutes to reply."
+  verifyRequest: "Hey! A user with the minecraft name `{player_name}` has made a request to verify their account and receive a special rank in the {discord_server_name} server. Did you make this request? You have 2 minutes to reply."
   verifiedMinecraft: "Your account has been verified with the discord user: {discord_tag}"
   verifiedDiscord: "Your account has been verified with the minecraft user: {player_name}"
   deniedMinecraft: "Failed to verify you with: {discord_tag}. User denied the request."
@@ -14,7 +14,7 @@ messages:
   player-only: "This command is only for Players. It can't be run in console."
   invalid-server-id: "Your supplied server id is invalid. Please update it as soon as possible."
   default-value: "Found the default value for {value} value. This is an important value, without it the plugin can't work. Disabling plugin!"  # Placeholders: {value}
-  config-reloaded: "Config file reloaded successfully!"
+  config-reloaded: "Config and messages files reloaded successfully!"
   config-reload-error: "Error while trying to reload config, see error in the console."
   updated-roles: "Updated your roles/nickname in discord successfully!"
   no-perm-cmd: "You don't have permission to run this command!"
@@ -23,6 +23,9 @@ messages:
   player-not-found: "Player not found!"
   not-synced: "You are not synced, so you can't be unsynced!"
   unsynced-successfully: "Your account has been unsynced successfully!"
-  dm-failed: "Could not DM User! User has DMs closed."
-  request-reply: "Successfully messaged User. Check your DMs!"
+  dm-failed: "Could not DM user! User has DMs closed."
+  request-reply: "Successfully messaged user. Check your DMs!"
   hierarchy-error: "Failed to change nickname/role due to Discord Role Hierarchy problems."
+  yesbutton: "Yes"
+  nobutton: "No"
+  embed-title: "Verify Request"

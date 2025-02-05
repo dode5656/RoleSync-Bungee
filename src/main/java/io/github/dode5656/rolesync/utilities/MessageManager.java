@@ -18,7 +18,7 @@ public final class MessageManager {
         this.plugin = plugin;
     }
 
-    public final BaseComponent[] color(String message, boolean rgb) {
+    public BaseComponent[] color(String message, boolean rgb) {
         if (rgb) {
             return TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&',
                     convertHexToColor(message)));
@@ -26,39 +26,45 @@ public final class MessageManager {
         return TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&',message));
     }
 
-    public final BaseComponent[] format(String msg, boolean rgb) {
+    public BaseComponent[] format(String msg, boolean rgb) {
         return color(plugin.getConfig().getString(Message.PREFIX.getMessage())+msg, rgb);
     }
 
-    public final BaseComponent[] formatBase(Message msg, boolean rgb) {
+    public BaseComponent[] formatBase(Message msg, boolean rgb) {
         return format(plugin.getMessages().read().getString(msg.getMessage()), rgb);
     }
 
-    public final String format(Message msg, boolean rgb) {
+    public String format(Message msg, boolean rgb) {
         return TextComponent.toLegacyText(format(plugin.getMessages().read().getString(msg.getMessage()), rgb));
     }
 
-    public final String format(BaseComponent[] msg) {
+    public String format(BaseComponent[] msg) {
         return TextComponent.toLegacyText(msg);
     }
 
-    public final String formatDiscord(Message msg) { return plugin.getMessages().read().getString(msg.getMessage()); }
+    public String formatDiscord(Message msg) { return plugin.getMessages().read().getString(msg.getMessage()); }
 
-    public final BaseComponent[] replacePlaceholders(String msg, String discordTag, String playerName, String guildName, boolean rgb) {
-        LuckPerms api = LuckPermsProvider.get();
+    public BaseComponent[] replacePlaceholders(String msg, String discordTag, String playerName, String guildName, boolean rgb) {
         String prefix = "\\{luckperms_prefix}";
-        User lpuser = api.getUserManager().getUser(playerName);
-        if (lpuser != null) prefix = lpuser.getCachedData().getMetaData().getPrefix();
+        String suffix = "\\{luckperms_suffix}";
+        if (plugin.getProxy().getPluginManager().getPlugin("LuckPerms") != null) {
+            LuckPerms api = LuckPermsProvider.get();
+            User lpuser = api.getUserManager().getUser(playerName);
+            if (lpuser != null) prefix = lpuser.getCachedData().getMetaData().getPrefix();
+            if (lpuser != null) suffix = lpuser.getCachedData().getMetaData().getSuffix();
+        }
+
         return color(plugin.getConfig().getString(Message.PREFIX.getMessage())+msg
                 .replaceAll("\\{discord_tag}", Matcher.quoteReplacement(discordTag))
                 .replaceAll("\\{player_name}", Matcher.quoteReplacement(playerName))
                 .replaceAll("\\{discord_server_name}", Matcher.quoteReplacement(guildName))
-                .replaceAll("\\{luckperms_prefix}", Matcher.quoteReplacement(prefix == null ? "" : prefix)), rgb);
+                .replaceAll("\\{luckperms_prefix}", Matcher.quoteReplacement(prefix == null ? "" : prefix))
+                .replaceAll("\\{luckperms_suffix}", Matcher.quoteReplacement(suffix == null ? "" : suffix)), rgb);
     }
 
-    public final String replacePlaceholdersDiscord(String msg, String discordTag, String playerName, String guildName) {
-        String prefix = "{luckperms_prefix}";
-        String suffix = "{luckperms_suffix}";
+    public String replacePlaceholdersDiscord(String msg, String discordTag, String playerName, String guildName) {
+        String prefix = "\\{luckperms_prefix}";
+        String suffix = "\\{luckperms_suffix}";
         if (plugin.getProxy().getPluginManager().getPlugin("LuckPerms") != null) {
             LuckPerms api = LuckPermsProvider.get();
             User lpuser = api.getUserManager().getUser(playerName);
@@ -75,7 +81,7 @@ public final class MessageManager {
                 .replaceAll("\\{luckperms_suffix}", Matcher.quoteReplacement(suffix == null ? "" : suffix)))));
     }
 
-    public final String defaultError(String value) {
+    public String defaultError(String value) {
         return plugin.getMessages().read().getString(Message.DEFAULT_VALUE.getMessage()).replaceAll("\\{value}", value);
     }
 

@@ -6,11 +6,14 @@ import io.github.dode5656.rolesync.RoleSync;
 import io.github.dode5656.rolesync.utilities.Message;
 import io.github.dode5656.rolesync.utilities.MessageManager;
 import io.github.dode5656.rolesync.utilities.PluginStatus;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.Button;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
@@ -138,15 +141,18 @@ public final class SyncCommand extends Command {
         final Member finalMember = member;
         member.getUser().openPrivateChannel().queue(privateChannel -> {
 
-            privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(messageManager.formatDiscord(Message.VERIFY_REQUEST),
-                    privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue(m->{
+            EmbedBuilder embed = new EmbedBuilder().setTitle(messageManager.formatDiscord(Message.EMBED_TITLE)).setDescription(messageManager.replacePlaceholdersDiscord(messageManager.formatDiscord(Message.VERIFY_REQUEST),
+                    privateChannel.getUser().getAsTag(), sender.getName(), guild.getName()));
+            privateChannel.sendMessage(embed.build()).setActionRows(ActionRow.of(
+                    Button.success(player.getUniqueId() + privateChannel.getUser().getId() + "yes", messageManager.formatDiscord(Message.YESBUTTON)),
+                    Button.danger(player.getUniqueId() + privateChannel.getUser().getId() + "no", messageManager.formatDiscord(Message.NOBUTTON)))).queue(m->{
                 player.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.REQUEST_REPLY),
                         privateChannel.getUser().getAsTag(),sender.getName(),guild.getName(),rgb));
-                waiter.waitForEvent(PrivateMessageReceivedEvent.class, event -> event.getChannel().getId()
+                waiter.waitForEvent(ButtonClickEvent.class, event -> event.getChannel().getId()
                         .equals(privateChannel.getId()) &&
-                        !event.getMessage().getAuthor().isBot(), event -> {
+                        event.getComponentId().startsWith(player.getUniqueId() + privateChannel.getUser().getId()), event -> {
 
-                    if (event.getMessage().getContentRaw().equalsIgnoreCase("yes")) {
+                    if (event.getComponentId().endsWith("yes")) {
 
                         plugin.getPlayerCache().reload(plugin);
                         Configuration playerCache = plugin.getPlayerCache().read();
@@ -174,25 +180,27 @@ public final class SyncCommand extends Command {
                         sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.VERIFIED_MINECRAFT),
                                 privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), rgb));
 
-                        privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
+                        event.editMessageEmbeds(embed.setDescription(messageManager.replacePlaceholdersDiscord(
                                 messageManager.formatDiscord(Message.VERIFIED_DISCORD),
-                                privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
+                                privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).build()).queue();
 
-                    } else if (event.getMessage().getContentRaw().equalsIgnoreCase("no")) {
+                    } else if (event.getComponentId().endsWith("no")) {
 
-                        event.getChannel().sendMessage(messageManager.replacePlaceholdersDiscord(
+                        event.editMessageEmbeds(embed.setDescription(messageManager.replacePlaceholdersDiscord(
                                 messageManager.formatDiscord(Message.DENIED_DISCORD),
-                                privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
+                                privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).build()).queue();
                         sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.DENIED_MINECRAFT),
                                 privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), rgb));
 
                     }
 
+                    event.getHook().editOriginalComponents().queue();
+
                 }, plugin.getConfig().getInt("verifyTimeout"), TimeUnit.MINUTES, () -> {
 
-                    privateChannel.sendMessage(messageManager.replacePlaceholdersDiscord(
+                    m.editMessage(embed.setDescription(messageManager.replacePlaceholdersDiscord(
                             messageManager.formatDiscord(Message.TOO_LONG_DISCORD),
-                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).queue();
+                            privateChannel.getUser().getAsTag(), sender.getName(), guild.getName())).build()).queue();
 
                     sender.sendMessage(messageManager.replacePlaceholders(messageManager.formatDiscord(Message.TOO_LONG_MC),
                             privateChannel.getUser().getAsTag(), sender.getName(), guild.getName(), rgb));
